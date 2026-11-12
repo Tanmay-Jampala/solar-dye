@@ -14,11 +14,14 @@ const site = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(site, 'dist');
 const pub = path.join(site, 'public');
 const ORIGIN = 'http://stills.local';
+// The build's base path (SITE_BASE, e.g. /solar-dye/ for GitHub Pages): served from dist/ with it stripped.
+const BASE = (process.env.SITE_BASE || '/').replace(/\/?$/, '/');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2', '.woff': 'font/woff' };
 
 function serve(route) {
   const url = new URL(route.request().url());
-  let file = path.join(dist, decodeURIComponent(url.pathname));
+  const rel = url.pathname.startsWith(BASE) ? url.pathname.slice(BASE.length - 1) : url.pathname;
+  let file = path.join(dist, decodeURIComponent(rel));
   if (!file.startsWith(dist)) return route.fulfill({ status: 403 });
   if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
   if (!fs.existsSync(file)) return route.fulfill({ status: 404, body: 'not found' });
@@ -37,7 +40,7 @@ try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, reducedMotion: 'no-preference' });
   await context.route(`${ORIGIN}/**`, serve);
   const page = await context.newPage();
-  await page.goto(`${ORIGIN}/`, { waitUntil: 'load' });
+  await page.goto(`${ORIGIN}${BASE}`, { waitUntil: 'load' });
   const live = await page
     .waitForFunction(() => document.documentElement.classList.contains('gl-hero') && !document.documentElement.classList.contains('preload'), null, { timeout: 60000 })
     .then(() => true)

@@ -91,6 +91,8 @@ function lintHtml(html) {
         for (const attr of CHECKED_ATTRS) {
           if (attrs[attr] === undefined || bound.includes(attr)) continue;
           if (name === 'meta' && attrs.name === 'viewport') continue;
+          // Absolute page and image addresses (e.g. .../parts/hf-vs-b3lyp/) are URLs, not copy.
+          if (name === 'meta' && /^og:(url|image)$/.test(attrs.property || '')) continue;
           const bad = stray(attrs[attr]);
           if (bad) problems.push(`<${name} ${attr}="…">: ${bad}`);
         }

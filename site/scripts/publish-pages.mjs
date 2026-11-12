@@ -33,7 +33,8 @@ run('npm run build', site, { SITE_URL, SITE_BASE });
 if (!fs.existsSync(path.join(site, 'dist', '.nojekyll'))) throw new Error('publish-pages: dist/.nojekyll missing (GitHub would drop _astro/)');
 
 const source = out('git rev-parse --short HEAD');
-const dirty = out('git status --porcelain -- site results src') !== '';
+// Build outputs that every build rewrites (the hero stills, the audit) do not count as uncommitted source.
+const dirty = out(`git status --porcelain -- site results src ":!site/public/og.png" ":!site/public/hero-poster.jpg" ":!site/NUMBER_AUDIT.md"`) !== '';
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'solar-dye-pages-'));
 try {
   const hasBranch = out('git branch --list gh-pages') !== '';
