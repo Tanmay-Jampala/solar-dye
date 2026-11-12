@@ -1,0 +1,163 @@
+{
+  "cache_key": "382ffec2697c",
+  "name": "candidate_7534c2cb",
+  "smiles": "C(=O)C(=O)C(=N)NC=N",
+  "group": "screening candidate",
+  "rings": 0,
+  "method": "B3LYP",
+  "basis": "6-31G*",
+  "n_atoms": 14,
+  "n_heavy_atoms": 9,
+  "n_basis_functions": 136,
+  "total_energy_eV": -12791.321504169702,
+  "homo_eV": -6.882848780654484,
+  "lumo_eV": -3.927533578365904,
+  "gap_eV": 2.9553152022885802,
+  "key_bond_name": null,
+  "key_bond_A": null,
+  "key_bond_mmff94_A": null,
+  "key_dihedral_name": null,
+  "key_dihedrals_deg": [],
+  "key_dihedrals_mmff94_deg": [],
+  "heavy_atom_bonds": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-O2",
+      "length_A": 1.211926497442437
+    },
+    {
+      "atoms": [
+        0,
+        2
+      ],
+      "label": "C1-C3",
+      "length_A": 1.5384877723600336
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-O4",
+      "length_A": 1.2159139662198812
+    },
+    {
+      "atoms": [
+        2,
+        4
+      ],
+      "label": "C3-C5",
+      "length_A": 1.5265781629789306
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-N6",
+      "length_A": 1.2828831480778946
+    },
+    {
+      "atoms": [
+        4,
+        6
+      ],
+      "label": "C5-N7",
+      "length_A": 1.3765700642954826
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "N7-C8",
+      "length_A": 1.407160202934716
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-N9",
+      "length_A": 1.2690266618872281
+    }
+  ],
+  "heavy_atom_bonds_mmff94": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-O2",
+      "length_A": 1.2232855413129102
+    },
+    {
+      "atoms": [
+        0,
+        2
+      ],
+      "label": "C1-C3",
+      "length_A": 1.5009281222869066
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-O4",
+      "length_A": 1.2253086007944145
+    },
+    {
+      "atoms": [
+        2,
+        4
+      ],
+      "label": "C3-C5",
+      "length_A": 1.530976431760205
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-N6",
+      "length_A": 1.3025396865860355
+    },
+    {
+      "atoms": [
+        4,
+        6
+      ],
+      "label": "C5-N7",
+      "length_A": 1.377264154963671
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "N7-C8",
+      "length_A": 1.3625236355294357
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-N9",
+      "length_A": 1.2855607068231336
+    }
+  ],
+  "optimisation_steps": 14,
+  "optimisation_seconds": 303.3533020999894,
+  "single_point_seconds": 13.637856200002716,
+  "wall_seconds": 316.9911582999921,
+  "threads": 6,
+  "mmff94_energy_before_eV": 1.4293987402254595,
+  "mmff94_energy_after_eV": 0.12198851780413114,
+  "mmff94_energy_drop_eV": 1.3074102224213282,
+  "mmff94_converged": true
+}

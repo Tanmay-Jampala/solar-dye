@@ -26,7 +26,7 @@ import os
 import time
 
 from src.constants import (BASIS_SET, CACHE_DIR, HARTREE_TO_EV, KCAL_PER_MOL_TO_EV, PYSCF_MAX_MEMORY_MB,
-                           PYSCF_THREADS, RANDOM_SEED)
+                           PYSCF_THREADS, RANDOM_SEED, REPO_ROOT)
 
 # Thread count must be fixed before PySCF (and its BLAS) is imported.
 os.environ.setdefault("OMP_NUM_THREADS", str(PYSCF_THREADS))
@@ -474,7 +474,7 @@ def orbital_grids(name, method="B3LYP", points_per_axis=80, margin_bohr=4.0):
                          + np.arange(points_per_axis) * cube.box[axis, axis] / (points_per_axis - 1) * bohr_to_angstrom
                          for axis in range(3)]
         grids[label] = {"values": np.asarray(values).reshape(points_per_axis, points_per_axis, points_per_axis),
-                        "axes_A": axes_angstrom, "cube_file": str(cube_path)}
+                        "axes_A": axes_angstrom, "cube_file": cube_path.relative_to(REPO_ROOT).as_posix()}
 
     symbols = [pyscf_molecule.atom_symbol(i) for i in range(pyscf_molecule.natm)]
     return {"orbitals": grids, "symbols": symbols, "coordinates_A": pyscf_molecule.atom_coords(unit="Angstrom")}

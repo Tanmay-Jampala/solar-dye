@@ -1,0 +1,279 @@
+{
+  "cache_key": "a0616a3e1731",
+  "name": "azobenzene",
+  "smiles": "c1ccc(/N=N/c2ccccc2)cc1",
+  "group": "dye core",
+  "rings": 2,
+  "method": "HF",
+  "basis": "6-31G*",
+  "n_atoms": 24,
+  "n_heavy_atoms": 14,
+  "n_basis_functions": 216,
+  "total_energy_eV": -15485.966565114188,
+  "homo_eV": -8.248198994706097,
+  "lumo_eV": 1.7947983473664249,
+  "gap_eV": 10.042997342072523,
+  "key_bond_name": "N=N",
+  "key_bond_A": 1.219477371358787,
+  "key_bond_mmff94_A": 1.2510789701258784,
+  "key_dihedral_name": "C-N=N-C",
+  "key_dihedrals_deg": [
+    179.9973530594051
+  ],
+  "key_dihedrals_mmff94_deg": [
+    -179.45444220277673
+  ],
+  "heavy_atom_bonds": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.3903813931011437
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.3806307492365837
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.3928040642607324
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-N5",
+      "length_A": 1.4198654909070574
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "N5-N6",
+      "length_A": 1.219477371358787
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "N6-C7",
+      "length_A": 1.419862716011843
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.3854220498342629
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-C9",
+      "length_A": 1.386499807081215
+    },
+    {
+      "atoms": [
+        8,
+        9
+      ],
+      "label": "C9-C10",
+      "length_A": 1.383349393587668
+    },
+    {
+      "atoms": [
+        9,
+        10
+      ],
+      "label": "C10-C11",
+      "length_A": 1.3903866164299767
+    },
+    {
+      "atoms": [
+        10,
+        11
+      ],
+      "label": "C11-C12",
+      "length_A": 1.3806376817703545
+    },
+    {
+      "atoms": [
+        3,
+        12
+      ],
+      "label": "C4-C13",
+      "length_A": 1.3854309151096313
+    },
+    {
+      "atoms": [
+        12,
+        13
+      ],
+      "label": "C13-C14",
+      "length_A": 1.3864930205847235
+    },
+    {
+      "atoms": [
+        13,
+        0
+      ],
+      "label": "C14-C1",
+      "length_A": 1.3833475500958743
+    },
+    {
+      "atoms": [
+        11,
+        6
+      ],
+      "label": "C12-C7",
+      "length_A": 1.392791670235045
+    }
+  ],
+  "heavy_atom_bonds_mmff94": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.3940549751791103
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.3967772456585037
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.4016739184436682
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-N5",
+      "length_A": 1.4070700975751533
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "N5-N6",
+      "length_A": 1.251078970125878
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "N6-C7",
+      "length_A": 1.40706994444686
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.3989878773761408
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-C9",
+      "length_A": 1.3969255565320222
+    },
+    {
+      "atoms": [
+        8,
+        9
+      ],
+      "label": "C9-C10",
+      "length_A": 1.3941567105948878
+    },
+    {
+      "atoms": [
+        9,
+        10
+      ],
+      "label": "C10-C11",
+      "length_A": 1.3940554290904816
+    },
+    {
+      "atoms": [
+        10,
+        11
+      ],
+      "label": "C11-C12",
+      "length_A": 1.3967773998016022
+    },
+    {
+      "atoms": [
+        3,
+        12
+      ],
+      "label": "C4-C13",
+      "length_A": 1.3989884931199486
+    },
+    {
+      "atoms": [
+        12,
+        13
+      ],
+      "label": "C13-C14",
+      "length_A": 1.396925348564408
+    },
+    {
+      "atoms": [
+        13,
+        0
+      ],
+      "label": "C14-C1",
+      "length_A": 1.394158300837632
+    },
+    {
+      "atoms": [
+        11,
+        6
+      ],
+      "label": "C12-C7",
+      "length_A": 1.4016739977030266
+    }
+  ],
+  "optimisation_steps": 19,
+  "optimisation_seconds": 1330.4258721000006,
+  "single_point_seconds": 46.80248669999855,
+  "wall_seconds": 1377.2283587999991,
+  "threads": 6,
+  "mmff94_energy_before_eV": 2.398133176094889,
+  "mmff94_energy_after_eV": 1.7589917783758031,
+  "mmff94_energy_drop_eV": 0.6391413977190856,
+  "mmff94_converged": true
+}

@@ -728,6 +728,7 @@ def run_quantum_dots():
     """Part 6: Brus curves for CdSe and PbS, the radius that reaches the SQ optimum, fig14 and fig15."""
     from src import figures
     from src import quantum_dots as qd
+    from src.constants import HC_EV_NM
 
     target_gap = results_io.get_value("sq.optimum_gap_eV")
     curves = {material: qd.brus_curve(material) for material in qd.MATERIALS}
@@ -766,7 +767,7 @@ def run_quantum_dots():
         "radius_at_optimum_nm": radius_at_optimum,
         "brus_curve": {material: plain(curve) for material, curve in curves.items()},
         "table": {material: [{"radius_nm": r, "gap_eV": float(qd.brus_gap_eV(r, material)),
-                              "wavelength_nm": float(1239.8419843320026 / qd.brus_gap_eV(r, material)),
+                              "wavelength_nm": float(HC_EV_NM / qd.brus_gap_eV(r, material)),
                               **{k: float(v) for k, v in qd.brus_terms_eV(r, material).items()}}
                              for r in sample_radii] for material in qd.MATERIALS},
     })

@@ -1,0 +1,227 @@
+{
+  "cache_key": "97ae494eb965",
+  "name": "coumarin",
+  "smiles": "O=c1ccc2ccccc2o1",
+  "group": "dye core",
+  "rings": 2,
+  "method": "B3LYP",
+  "basis": "6-31G*",
+  "n_atoms": 17,
+  "n_heavy_atoms": 11,
+  "n_basis_functions": 166,
+  "total_energy_eV": -13524.448052719545,
+  "homo_eV": -6.489743197486053,
+  "lumo_eV": -1.8721124319838691,
+  "gap_eV": 4.617630765502184,
+  "key_bond_name": "C=O",
+  "key_bond_A": null,
+  "key_bond_mmff94_A": null,
+  "key_dihedral_name": null,
+  "key_dihedrals_deg": [],
+  "key_dihedrals_mmff94_deg": [],
+  "heavy_atom_bonds": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "O1-C2",
+      "length_A": 1.2079341841932918
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.4607123867695502
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.3521648160294022
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.4419754092564159
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.4075516274455628
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.3881335610092973
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.403750936109041
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-C9",
+      "length_A": 1.391262003966558
+    },
+    {
+      "atoms": [
+        8,
+        9
+      ],
+      "label": "C9-C10",
+      "length_A": 1.3966856490767383
+    },
+    {
+      "atoms": [
+        9,
+        10
+      ],
+      "label": "C10-O11",
+      "length_A": 1.3647420989681525
+    },
+    {
+      "atoms": [
+        10,
+        1
+      ],
+      "label": "O11-C2",
+      "length_A": 1.3968797175610252
+    },
+    {
+      "atoms": [
+        9,
+        4
+      ],
+      "label": "C10-C5",
+      "length_A": 1.4087503537722155
+    }
+  ],
+  "heavy_atom_bonds_mmff94": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "O1-C2",
+      "length_A": 1.2257712947356552
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.47376598612363
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.3364626531554415
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.4535060429041373
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.396292824032887
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.3988757802906382
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.3971100472956777
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-C9",
+      "length_A": 1.3936208612134113
+    },
+    {
+      "atoms": [
+        8,
+        9
+      ],
+      "label": "C9-C10",
+      "length_A": 1.3929137901340727
+    },
+    {
+      "atoms": [
+        9,
+        10
+      ],
+      "label": "C10-O11",
+      "length_A": 1.4085466214189177
+    },
+    {
+      "atoms": [
+        10,
+        1
+      ],
+      "label": "O11-C2",
+      "length_A": 1.3878463028438903
+    },
+    {
+      "atoms": [
+        9,
+        4
+      ],
+      "label": "C10-C5",
+      "length_A": 1.3937229641277813
+    }
+  ],
+  "optimisation_steps": 9,
+  "optimisation_seconds": 293.5913309000025,
+  "single_point_seconds": 16.508511500003806,
+  "wall_seconds": 310.0998424000063,
+  "threads": 6,
+  "mmff94_energy_before_eV": 2.2928543308065836,
+  "mmff94_energy_after_eV": 1.4656142136680557,
+  "mmff94_energy_drop_eV": 0.827240117138528,
+  "mmff94_converged": true
+}

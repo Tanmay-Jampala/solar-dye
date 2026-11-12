@@ -16,7 +16,7 @@ import json
 
 import numpy as np
 
-from src.constants import BOLTZMANN_K, CACHE_DIR, CELL_TEMPERATURE_K
+from src.constants import BOLTZMANN_K, CACHE_DIR, CELL_TEMPERATURE_K, ELEMENTARY_CHARGE
 
 SECONDS_PER_YEAR = 365.25 * 24 * 3600
 JOULES_PER_KWH = 3.6e6
@@ -107,7 +107,7 @@ def landauer_comparison(total_energy_J):
     return {
         "temperature_K": temperature,
         "landauer_limit_J_per_bit": float(landauer_J),
-        "landauer_limit_eV_per_bit": float(landauer_J / 1.602176634e-19),
+        "landauer_limit_eV_per_bit": float(landauer_J / ELEMENTARY_CHARGE),
         "cpu_peak_flops_per_second": float(peak_flops),
         "cpu_energy_per_flop_J": float(joules_per_flop),
         "ratio_energy_per_flop_to_landauer": float(joules_per_flop / landauer_J),

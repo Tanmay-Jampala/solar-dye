@@ -1,0 +1,313 @@
+{
+  "cache_key": "d2a1ccf4281c",
+  "name": "terthiophene",
+  "smiles": "c1csc(-c2ccc(-c3cccs3)s2)c1",
+  "group": "thiophene ladder",
+  "rings": 3,
+  "method": "B3LYP",
+  "basis": "6-31G*",
+  "n_atoms": 23,
+  "n_heavy_atoms": 15,
+  "n_basis_functions": 238,
+  "total_energy_eV": -45078.75969173052,
+  "homo_eV": -5.180351135266415,
+  "lumo_eV": -1.6399438040828114,
+  "gap_eV": 3.5404073311836033,
+  "key_bond_name": "inter-ring C-C",
+  "key_bond_A": 1.4478783302768736,
+  "key_bond_mmff94_A": 1.4510922001346045,
+  "key_dihedral_name": "S-C-C-S",
+  "key_dihedrals_deg": [
+    164.54441175059898,
+    164.50975605720038
+  ],
+  "key_dihedrals_mmff94_deg": [
+    -179.99813076540894,
+    0.0004521663742156225
+  ],
+  "heavy_atom_bonds": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.3680980523115145
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-S3",
+      "length_A": 1.7348355387948111
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "S3-C4",
+      "length_A": 1.7566859486552733
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.4478783302768736
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.3795403053312483
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.4169570887249012
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.3795356823926925
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-C9",
+      "length_A": 1.4478871109942881
+    },
+    {
+      "atoms": [
+        8,
+        9
+      ],
+      "label": "C9-C10",
+      "length_A": 1.3796004604505159
+    },
+    {
+      "atoms": [
+        9,
+        10
+      ],
+      "label": "C10-C11",
+      "length_A": 1.4236623989874275
+    },
+    {
+      "atoms": [
+        10,
+        11
+      ],
+      "label": "C11-C12",
+      "length_A": 1.3681100193281461
+    },
+    {
+      "atoms": [
+        11,
+        12
+      ],
+      "label": "C12-S13",
+      "length_A": 1.7348251639194254
+    },
+    {
+      "atoms": [
+        7,
+        13
+      ],
+      "label": "C8-S14",
+      "length_A": 1.7560105287271115
+    },
+    {
+      "atoms": [
+        3,
+        14
+      ],
+      "label": "C4-C15",
+      "length_A": 1.3796162068240547
+    },
+    {
+      "atoms": [
+        14,
+        0
+      ],
+      "label": "C15-C1",
+      "length_A": 1.4236521721464108
+    },
+    {
+      "atoms": [
+        13,
+        4
+      ],
+      "label": "S14-C5",
+      "length_A": 1.7560104967719194
+    },
+    {
+      "atoms": [
+        12,
+        8
+      ],
+      "label": "S13-C9",
+      "length_A": 1.756665403482156
+    }
+  ],
+  "heavy_atom_bonds_mmff94": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.3743319965949496
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-S3",
+      "length_A": 1.7065606042094426
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "S3-C4",
+      "length_A": 1.7232481692804258
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.4510922001346043
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.3825451062282947
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.4274093902480958
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.3830596956803334
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-C9",
+      "length_A": 1.4524119388326222
+    },
+    {
+      "atoms": [
+        8,
+        9
+      ],
+      "label": "C9-C10",
+      "length_A": 1.3867714087232428
+    },
+    {
+      "atoms": [
+        9,
+        10
+      ],
+      "label": "C10-C11",
+      "length_A": 1.4264147625456978
+    },
+    {
+      "atoms": [
+        10,
+        11
+      ],
+      "label": "C11-C12",
+      "length_A": 1.3741880733879996
+    },
+    {
+      "atoms": [
+        11,
+        12
+      ],
+      "label": "C12-S13",
+      "length_A": 1.7062192654918882
+    },
+    {
+      "atoms": [
+        7,
+        13
+      ],
+      "label": "C8-S14",
+      "length_A": 1.716588781742454
+    },
+    {
+      "atoms": [
+        3,
+        14
+      ],
+      "label": "C4-C15",
+      "length_A": 1.3863217239243948
+    },
+    {
+      "atoms": [
+        14,
+        0
+      ],
+      "label": "C15-C1",
+      "length_A": 1.4265031715963916
+    },
+    {
+      "atoms": [
+        13,
+        4
+      ],
+      "label": "S14-C5",
+      "length_A": 1.7167784533540145
+    },
+    {
+      "atoms": [
+        12,
+        8
+      ],
+      "label": "S13-C9",
+      "length_A": 1.7226153561462967
+    }
+  ],
+  "optimisation_steps": 20,
+  "optimisation_seconds": 2376.4473562999992,
+  "single_point_seconds": 88.19047510000382,
+  "wall_seconds": 2464.637831400003,
+  "threads": 6,
+  "mmff94_energy_before_eV": 4.705502957759276,
+  "mmff94_energy_after_eV": 1.1362742154116485,
+  "mmff94_energy_drop_eV": 3.5692287423476285,
+  "mmff94_converged": true
+}

@@ -1,0 +1,131 @@
+{
+  "cache_key": "69cf42cfb158",
+  "name": "benzene",
+  "smiles": "c1ccccc1",
+  "group": "phenyl ladder",
+  "rings": 1,
+  "method": "HF",
+  "basis": "6-31G*",
+  "n_atoms": 12,
+  "n_heavy_atoms": 6,
+  "n_basis_functions": 96,
+  "total_energy_eV": -6277.734633785827,
+  "homo_eV": -8.997486263388208,
+  "lumo_eV": 4.0722605952323665,
+  "gap_eV": 13.069746858620574,
+  "key_bond_name": "aromatic C-C",
+  "key_bond_A": 1.3863056802181029,
+  "key_bond_mmff94_A": 1.3948258856115778,
+  "key_dihedral_name": null,
+  "key_dihedrals_deg": [],
+  "key_dihedrals_mmff94_deg": [],
+  "heavy_atom_bonds": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.3863056802181029
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.3863057712315106
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.3863056808085052
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.3863056796190754
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.3863057709645
+    },
+    {
+      "atoms": [
+        5,
+        0
+      ],
+      "label": "C6-C1",
+      "length_A": 1.3863056814984067
+    }
+  ],
+  "heavy_atom_bonds_mmff94": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.3948258856115778
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.3948258822240152
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.3948259057123882
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.394825986961991
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.3948259524452031
+    },
+    {
+      "atoms": [
+        5,
+        0
+      ],
+      "label": "C6-C1",
+      "length_A": 1.3948259129441472
+    }
+  ],
+  "optimisation_steps": 4,
+  "optimisation_seconds": 21.869809600000735,
+  "single_point_seconds": 0.7265184999996563,
+  "wall_seconds": 22.59632810000039,
+  "threads": 6,
+  "mmff94_energy_before_eV": 0.7919987780603365,
+  "mmff94_energy_after_eV": 0.703667880812564,
+  "mmff94_energy_drop_eV": 0.08833089724777245,
+  "mmff94_converged": true
+}

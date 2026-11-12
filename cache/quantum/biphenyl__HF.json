@@ -1,0 +1,247 @@
+{
+  "cache_key": "69366a887108",
+  "name": "biphenyl",
+  "smiles": "c1ccc(-c2ccccc2)cc1",
+  "group": "phenyl ladder",
+  "rings": 2,
+  "method": "HF",
+  "basis": "6-31G*",
+  "n_atoms": 22,
+  "n_heavy_atoms": 12,
+  "n_basis_functions": 188,
+  "total_energy_eV": -12524.115342714204,
+  "homo_eV": -8.159475551935712,
+  "lumo_eV": 3.1745481149420787,
+  "gap_eV": 11.33402366687779,
+  "key_bond_name": "inter-ring C-C",
+  "key_bond_A": 1.490851103129627,
+  "key_bond_mmff94_A": 1.4723608280933778,
+  "key_dihedral_name": "inter-ring C-C-C-C",
+  "key_dihedrals_deg": [
+    45.56811998585202
+  ],
+  "key_dihedrals_mmff94_deg": [
+    53.85879148293516
+  ],
+  "heavy_atom_bonds": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.3854073915749316
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.3848153240792376
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.39288050535997
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.490851103129627
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.3928807184233838
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.3848153933406
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.3854071931527108
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-C9",
+      "length_A": 1.3854078824281537
+    },
+    {
+      "atoms": [
+        8,
+        9
+      ],
+      "label": "C9-C10",
+      "length_A": 1.3848159634558432
+    },
+    {
+      "atoms": [
+        3,
+        10
+      ],
+      "label": "C4-C11",
+      "length_A": 1.3928853685765263
+    },
+    {
+      "atoms": [
+        10,
+        11
+      ],
+      "label": "C11-C12",
+      "length_A": 1.3848159024433047
+    },
+    {
+      "atoms": [
+        11,
+        0
+      ],
+      "label": "C12-C1",
+      "length_A": 1.3854077060458774
+    },
+    {
+      "atoms": [
+        9,
+        4
+      ],
+      "label": "C10-C5",
+      "length_A": 1.392885020115186
+    }
+  ],
+  "heavy_atom_bonds_mmff94": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.392479930981219
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.397632525332864
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.4049649514219404
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.4723608280933778
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.4049652465517042
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.3976325612609453
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.3924797672151985
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-C9",
+      "length_A": 1.392479858096222
+    },
+    {
+      "atoms": [
+        8,
+        9
+      ],
+      "label": "C9-C10",
+      "length_A": 1.3976324992752396
+    },
+    {
+      "atoms": [
+        3,
+        10
+      ],
+      "label": "C4-C11",
+      "length_A": 1.4049650711984665
+    },
+    {
+      "atoms": [
+        10,
+        11
+      ],
+      "label": "C11-C12",
+      "length_A": 1.3976325590204057
+    },
+    {
+      "atoms": [
+        11,
+        0
+      ],
+      "label": "C12-C1",
+      "length_A": 1.3924797935383435
+    },
+    {
+      "atoms": [
+        9,
+        4
+      ],
+      "label": "C10-C5",
+      "length_A": 1.4049651229194173
+    }
+  ],
+  "optimisation_steps": 14,
+  "optimisation_seconds": 494.7150269999984,
+  "single_point_seconds": 6.041199200000847,
+  "wall_seconds": 500.7562261999992,
+  "threads": 6,
+  "mmff94_energy_before_eV": 2.0238708789997952,
+  "mmff94_energy_after_eV": 1.705476748962595,
+  "mmff94_energy_drop_eV": 0.3183941300372,
+  "mmff94_converged": true
+}

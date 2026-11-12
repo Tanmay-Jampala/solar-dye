@@ -1,0 +1,227 @@
+{
+  "cache_key": "cf643ae0c7bf",
+  "name": "coumarin",
+  "smiles": "O=c1ccc2ccccc2o1",
+  "group": "dye core",
+  "rings": 2,
+  "method": "HF",
+  "basis": "6-31G*",
+  "n_atoms": 17,
+  "n_heavy_atoms": 11,
+  "n_basis_functions": 166,
+  "total_energy_eV": -13443.656681838393,
+  "homo_eV": -8.781363727826244,
+  "lumo_eV": 1.9814072048534614,
+  "gap_eV": 10.762770932679706,
+  "key_bond_name": "C=O",
+  "key_bond_A": null,
+  "key_bond_mmff94_A": null,
+  "key_dihedral_name": null,
+  "key_dihedrals_deg": [],
+  "key_dihedrals_mmff94_deg": [],
+  "heavy_atom_bonds": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "O1-C2",
+      "length_A": 1.183907959632788
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.4678294329356834
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.3299221171595672
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.4526105854239588
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.3954248609707258
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.3774157546694628
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.393342181877206
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-C9",
+      "length_A": 1.3798615485075372
+    },
+    {
+      "atoms": [
+        8,
+        9
+      ],
+      "label": "C9-C10",
+      "length_A": 1.385777695594595
+    },
+    {
+      "atoms": [
+        9,
+        10
+      ],
+      "label": "C10-O11",
+      "length_A": 1.3535678983106316
+    },
+    {
+      "atoms": [
+        10,
+        1
+      ],
+      "label": "O11-C2",
+      "length_A": 1.3530676793764926
+    },
+    {
+      "atoms": [
+        9,
+        4
+      ],
+      "label": "C10-C5",
+      "length_A": 1.3879256394541704
+    }
+  ],
+  "heavy_atom_bonds_mmff94": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "O1-C2",
+      "length_A": 1.2257712947356552
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.47376598612363
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.3364626531554415
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.4535060429041373
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.396292824032887
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.3988757802906382
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.3971100472956777
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-C9",
+      "length_A": 1.3936208612134113
+    },
+    {
+      "atoms": [
+        8,
+        9
+      ],
+      "label": "C9-C10",
+      "length_A": 1.3929137901340727
+    },
+    {
+      "atoms": [
+        9,
+        10
+      ],
+      "label": "C10-O11",
+      "length_A": 1.4085466214189177
+    },
+    {
+      "atoms": [
+        10,
+        1
+      ],
+      "label": "O11-C2",
+      "length_A": 1.3878463028438903
+    },
+    {
+      "atoms": [
+        9,
+        4
+      ],
+      "label": "C10-C5",
+      "length_A": 1.3937229641277813
+    }
+  ],
+  "optimisation_steps": 12,
+  "optimisation_seconds": 271.26198999999906,
+  "single_point_seconds": 4.5514901999995345,
+  "wall_seconds": 275.8134801999986,
+  "threads": 6,
+  "mmff94_energy_before_eV": 2.2928543308065836,
+  "mmff94_energy_after_eV": 1.4656142136680557,
+  "mmff94_energy_drop_eV": 0.827240117138528,
+  "mmff94_converged": true
+}

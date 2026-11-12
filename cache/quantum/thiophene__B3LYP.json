@@ -1,0 +1,115 @@
+{
+  "cache_key": "e75e4bf7eba0",
+  "name": "thiophene",
+  "smiles": "c1ccsc1",
+  "group": "thiophene ladder",
+  "rings": 1,
+  "method": "B3LYP",
+  "basis": "6-31G*",
+  "n_atoms": 9,
+  "n_heavy_atoms": 5,
+  "n_basis_functions": 82,
+  "total_energy_eV": -15047.805900449408,
+  "homo_eV": -6.332842342837456,
+  "lumo_eV": -0.20559947430384387,
+  "gap_eV": 6.127242868533612,
+  "key_bond_name": "C-S",
+  "key_bond_A": 1.7353826951229478,
+  "key_bond_mmff94_A": 1.7116075868522955,
+  "key_dihedral_name": null,
+  "key_dihedrals_deg": [],
+  "key_dihedrals_mmff94_deg": [],
+  "heavy_atom_bonds": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.4301193237463765
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.3678157632308081
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-S4",
+      "length_A": 1.7353826951229478
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "S4-C5",
+      "length_A": 1.7353951250302588
+    },
+    {
+      "atoms": [
+        4,
+        0
+      ],
+      "label": "C5-C1",
+      "length_A": 1.367794298332679
+    }
+  ],
+  "heavy_atom_bonds_mmff94": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.4251520691124147
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.3777323397968355
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-S4",
+      "length_A": 1.7116075868522955
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "S4-C5",
+      "length_A": 1.7116076842178922
+    },
+    {
+      "atoms": [
+        4,
+        0
+      ],
+      "label": "C5-C1",
+      "length_A": 1.377732298064871
+    }
+  ],
+  "optimisation_steps": 6,
+  "optimisation_seconds": 47.03783389999444,
+  "single_point_seconds": 3.3210132000021986,
+  "wall_seconds": 50.35884709999664,
+  "threads": 6,
+  "mmff94_energy_before_eV": 0.7607703271710838,
+  "mmff94_energy_after_eV": 0.18989906802956205,
+  "mmff94_energy_drop_eV": 0.5708712591415217,
+  "mmff94_converged": true
+}

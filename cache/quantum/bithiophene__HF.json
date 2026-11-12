@@ -1,0 +1,215 @@
+{
+  "cache_key": "d484da8b2eec",
+  "name": "bithiophene",
+  "smiles": "c1csc(-c2cccs2)c1",
+  "group": "thiophene ladder",
+  "rings": 2,
+  "method": "HF",
+  "basis": "6-31G*",
+  "n_atoms": 16,
+  "n_heavy_atoms": 10,
+  "n_basis_functions": 160,
+  "total_energy_eV": -29971.345969863967,
+  "homo_eV": -7.932536946633912,
+  "lumo_eV": 2.580218931442999,
+  "gap_eV": 10.512755878076911,
+  "key_bond_name": "inter-ring C-C",
+  "key_bond_A": 1.464600440803471,
+  "key_bond_mmff94_A": 1.4526367961035107,
+  "key_dihedral_name": "S-C-C-S",
+  "key_dihedrals_deg": [
+    147.26449104084466
+  ],
+  "key_dihedrals_mmff94_deg": [
+    -0.0027387027764299403
+  ],
+  "heavy_atom_bonds": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.3448890646552714
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-S3",
+      "length_A": 1.7243644520898296
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "S3-C4",
+      "length_A": 1.7384065861084261
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.464600440803471
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.3519389629394318
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.433389607181412
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.3448879170819985
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-S9",
+      "length_A": 1.72436415240996
+    },
+    {
+      "atoms": [
+        3,
+        9
+      ],
+      "label": "C4-C10",
+      "length_A": 1.3519388672789299
+    },
+    {
+      "atoms": [
+        9,
+        0
+      ],
+      "label": "C10-C1",
+      "length_A": 1.433391413958906
+    },
+    {
+      "atoms": [
+        8,
+        4
+      ],
+      "label": "S9-C5",
+      "length_A": 1.738406943610696
+    }
+  ],
+  "heavy_atom_bonds_mmff94": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "C1-C2",
+      "length_A": 1.3741839205946436
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-S3",
+      "length_A": 1.7062448674083535
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "S3-C4",
+      "length_A": 1.7225259051056094
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.45263679610351
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.3868010682847394
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.4264186034174533
+    },
+    {
+      "atoms": [
+        6,
+        7
+      ],
+      "label": "C7-C8",
+      "length_A": 1.3741839955765767
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "C8-S9",
+      "length_A": 1.7062448483781905
+    },
+    {
+      "atoms": [
+        3,
+        9
+      ],
+      "label": "C4-C10",
+      "length_A": 1.3868011715446542
+    },
+    {
+      "atoms": [
+        9,
+        0
+      ],
+      "label": "C10-C1",
+      "length_A": 1.4264184885003446
+    },
+    {
+      "atoms": [
+        8,
+        4
+      ],
+      "label": "S9-C5",
+      "length_A": 1.7225261000199328
+    }
+  ],
+  "optimisation_steps": 15,
+  "optimisation_seconds": 341.73283909999736,
+  "single_point_seconds": 3.9873852000018815,
+  "wall_seconds": 345.72022429999924,
+  "threads": 6,
+  "mmff94_energy_before_eV": 2.0176047148707856,
+  "mmff94_energy_after_eV": 0.7335254794920082,
+  "mmff94_energy_drop_eV": 1.2840792353787776,
+  "mmff94_converged": true
+}

@@ -1,8 +1,15 @@
-cache/
+# Caches are regenerated on demand ...
+cache/*
+# ... except the HF/DFT results, which took hours: committed so a fresh clone never re-runs them.
+# (Orbital .cube grids are rebuilt from the .chk checkpoints in seconds, so they stay ignored.)
+!cache/quantum/
+cache/quantum/*
+!cache/quantum/*.json
+!cache/quantum/*.xyz
+!cache/quantum/*.chk
+!cache/torsion/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-data/raw/hopv/
-
 # Raw downloads are re-fetched and checksum-verified by src/download_data.py
 data/raw/

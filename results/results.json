@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-12T03:42:25+00:00",
-  "git_commit": "ccdf6cac3ebab1d170b5ea233201d0deb487594d",
+  "generated_at": "2026-11-12T04:57:51+00:00",
+  "git_commit": "0880c29c98c7d084308fc9719ffe4e5232361ab4",
   "environment": {
     "python": "3.11.18",
     "platform": "Windows-10-10.0.26300-SP0",
@@ -437,7 +437,7 @@
     {
       "name": "ML screen of QM9 is at least 10^6 times faster than B3LYP",
       "expected": ">= 1e6",
-      "actual": 18520272.805499125,
+      "actual": 16254471.878552439,
       "passed": true
     },
     {
@@ -3391,8 +3391,8 @@
         "lumo_centroid_fraction": 0.848422074385787,
         "charge_transfer_shift_A": 2.6846108272839975,
         "cube_files": [
-          "cache\\quantum\\4-nitroaniline__B3LYP__HOMO.cube",
-          "cache\\quantum\\4-nitroaniline__B3LYP__LUMO.cube"
+          "cache/quantum/4-nitroaniline__B3LYP__HOMO.cube",
+          "cache/quantum/4-nitroaniline__B3LYP__LUMO.cube"
         ]
       },
       "4-aminobenzonitrile": {
@@ -3403,8 +3403,8 @@
         "lumo_centroid_fraction": 0.5087521170251992,
         "charge_transfer_shift_A": 1.007567042126949,
         "cube_files": [
-          "cache\\quantum\\4-aminobenzonitrile__B3LYP__HOMO.cube",
-          "cache\\quantum\\4-aminobenzonitrile__B3LYP__LUMO.cube"
+          "cache/quantum/4-aminobenzonitrile__B3LYP__HOMO.cube",
+          "cache/quantum/4-aminobenzonitrile__B3LYP__LUMO.cube"
         ]
       }
     },
@@ -4166,7 +4166,7 @@
         "random_forest": {
           "MAE_eV": 3.0989081926651973,
           "RMSE_eV": 3.134233755104212,
-          "R2": -38.06536217098931
+          "R2": -38.06536217098932
         },
         "gradient_boosting": {
           "MAE_eV": 3.608971524792728,
@@ -4180,8 +4180,8 @@
           6.875319817488509
         ],
         "random_forest": [
-          5.215828970685989,
-          6.607684982198013
+          5.215828970685987,
+          6.60768498219801
         ],
         "gradient_boosting": [
           5.1585810449836345,
@@ -17109,31 +17109,31 @@
         "max_seconds": 546.2006349000003
       },
       "ML_inference_ridge": {
-        "total_seconds_for_dataset": 0.011140700007672422,
-        "mean_seconds_per_molecule": 8.515336585115471e-08,
-        "wall_seconds": 0.011140700007672422,
-        "energy_J": 0.501331500345259,
-        "energy_kWh": 1.3925875009590526e-07,
-        "cost_INR": 8.077007505562505e-07,
-        "co2_kg": 1.0124111131972313e-07
+        "total_seconds_for_dataset": 0.014997599995695055,
+        "mean_seconds_per_molecule": 1.1463338196371696e-07,
+        "wall_seconds": 0.014997599995695055,
+        "energy_J": 0.6748919998062775,
+        "energy_kWh": 1.8746999994618818e-07,
+        "cost_INR": 1.0873259996878915e-06,
+        "co2_kg": 1.362906899608788e-07
       },
       "ML_inference_random_forest": {
-        "total_seconds_for_dataset": 0.9495755999960238,
-        "mean_seconds_per_molecule": 7.258032117739861e-06,
-        "wall_seconds": 0.9495755999960238,
-        "energy_J": 42.73090199982107,
-        "energy_kWh": 1.1869694999950298e-05,
-        "cost_INR": 6.884423099971173e-05,
-        "co2_kg": 8.629268264963867e-06
+        "total_seconds_for_dataset": 1.3005897999973968,
+        "mean_seconds_per_molecule": 9.940991049502005e-06,
+        "wall_seconds": 1.3005897999973968,
+        "energy_J": 58.526540999882855,
+        "energy_kWh": 1.625737249996746e-05,
+        "cost_INR": 9.429276049981126e-05,
+        "co2_kg": 1.1819109807476342e-05
       },
       "ML_inference_gradient_boosting": {
-        "total_seconds_for_dataset": 2.2678157000045758,
-        "mean_seconds_per_molecule": 1.733393232494268e-05,
-        "wall_seconds": 2.2678157000045758,
-        "energy_J": 102.05170650020591,
-        "energy_kWh": 2.8347696250057196e-05,
-        "cost_INR": 0.00016441663825033173,
-        "co2_kg": 2.060877517379158e-05
+        "total_seconds_for_dataset": 2.583939099989948,
+        "mean_seconds_per_molecule": 1.9750205226513195e-05,
+        "wall_seconds": 2.583939099989948,
+        "energy_J": 116.27725949954765,
+        "energy_kWh": 3.2299238749874346e-05,
+        "cost_INR": 0.0001873355847492712,
+        "co2_kg": 2.3481546571158648e-05
       },
       "ML_training_ridge": {
         "grid_search_seconds": 0.16596949998347554,
@@ -17169,11 +17169,11 @@
       "co2_kg": 0.14336500485582113
     },
     "project_total": {
-      "wall_seconds": 15846.120851799962,
-      "energy_J": 713075.4383309983,
-      "energy_kWh": 0.19807651064749954,
-      "cost_INR": 1.1488437617554972,
-      "co2_kg": 0.14400162324073215
+      "wall_seconds": 15846.791846299937,
+      "energy_J": 713105.6330834972,
+      "energy_kWh": 0.1980848980787492,
+      "cost_INR": 1.1488924088567454,
+      "co2_kg": 0.14400772090325067
     },
     "full_dataset_extrapolation": {
       "molecules": 130831,
@@ -17206,14 +17206,14 @@
       },
       "ml_screen_all_qm9": {
         "model": "gradient_boosting",
-        "wall_seconds": 2.2678157000045758,
-        "energy_J": 102.05170650020591,
-        "energy_kWh": 2.8347696250057196e-05,
-        "cost_INR": 0.00016441663825033173,
-        "co2_kg": 2.060877517379158e-05
+        "wall_seconds": 2.583939099989948,
+        "energy_J": 116.27725949954765,
+        "energy_kWh": 3.2299238749874346e-05,
+        "cost_INR": 0.0001873355847492712,
+        "co2_kg": 2.3481546571158648e-05
       },
-      "speedup_ml_over_dft": 18520272.805499125,
-      "headline": "Running B3LYP on all 130,831 QM9 molecules on this laptop would take 1.3 years and 525 kWh (upper bound); the ML surrogate screens them in 2.27 seconds."
+      "speedup_ml_over_dft": 16254471.878552439,
+      "headline": "Running B3LYP on all 130,831 QM9 molecules on this laptop would take 1.3 years and 525 kWh (upper bound); the ML surrogate screens them in 2.58 seconds."
     },
     "landauer_comparison": {
       "temperature_K": 300.0,
@@ -17223,8 +17223,8 @@
       "cpu_energy_per_flop_J": 1.875e-10,
       "ratio_energy_per_flop_to_landauer": 65308735279.97356,
       "orders_of_magnitude_above_landauer": 10.814971273620703,
-      "project_energy_J": 713075.4383309983,
-      "bits_erasable_at_landauer_limit_with_project_energy": 2.4837362686192146e+26,
+      "project_energy_J": 713105.6330834972,
+      "bits_erasable_at_landauer_limit_with_project_energy": 2.4838414409444303e+26,
       "note": "one floating-point operation erases more than one bit, so per-bit the real CPU is somewhat closer to the limit than this ratio says; the order of magnitude is the point"
     },
     "timings": [

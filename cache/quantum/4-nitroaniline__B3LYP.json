@@ -1,0 +1,195 @@
+{
+  "cache_key": "d7c71c3715cb",
+  "name": "4-nitroaniline",
+  "smiles": "Nc1ccc(cc1)[N+](=O)[O-]",
+  "group": "push-pull",
+  "rings": 1,
+  "method": "B3LYP",
+  "basis": "6-31G*",
+  "n_atoms": 16,
+  "n_heavy_atoms": 10,
+  "n_basis_functions": 152,
+  "total_energy_eV": -13390.699270089126,
+  "homo_eV": -6.24641406026538,
+  "lumo_eV": -1.9447974540915252,
+  "gap_eV": 4.301616606173855,
+  "key_bond_name": "C-NH2 (donor)",
+  "key_bond_A": 1.380639314105867,
+  "key_bond_mmff94_A": 1.397608752411421,
+  "key_dihedral_name": null,
+  "key_dihedrals_deg": [],
+  "key_dihedrals_mmff94_deg": [],
+  "heavy_atom_bonds": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "N1-C2",
+      "length_A": 1.380639314105867
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.4116529809017686
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.3855191394844115
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.3972595037660975
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.39730378255348
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.3855680037048939
+    },
+    {
+      "atoms": [
+        4,
+        7
+      ],
+      "label": "C5-N8",
+      "length_A": 1.4559261578975817
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "N8-O9",
+      "length_A": 1.2341662710117876
+    },
+    {
+      "atoms": [
+        7,
+        9
+      ],
+      "label": "N8-O10",
+      "length_A": 1.2342032016495854
+    },
+    {
+      "atoms": [
+        6,
+        1
+      ],
+      "label": "C7-C2",
+      "length_A": 1.4116388164195004
+    }
+  ],
+  "heavy_atom_bonds_mmff94": [
+    {
+      "atoms": [
+        0,
+        1
+      ],
+      "label": "N1-C2",
+      "length_A": 1.397608752411421
+    },
+    {
+      "atoms": [
+        1,
+        2
+      ],
+      "label": "C2-C3",
+      "length_A": 1.3988604718979607
+    },
+    {
+      "atoms": [
+        2,
+        3
+      ],
+      "label": "C3-C4",
+      "length_A": 1.3985177516221226
+    },
+    {
+      "atoms": [
+        3,
+        4
+      ],
+      "label": "C4-C5",
+      "length_A": 1.3992080088378807
+    },
+    {
+      "atoms": [
+        4,
+        5
+      ],
+      "label": "C5-C6",
+      "length_A": 1.3992084543000667
+    },
+    {
+      "atoms": [
+        5,
+        6
+      ],
+      "label": "C6-C7",
+      "length_A": 1.3985177269859783
+    },
+    {
+      "atoms": [
+        4,
+        7
+      ],
+      "label": "C5-N8",
+      "length_A": 1.4677495468872779
+    },
+    {
+      "atoms": [
+        7,
+        8
+      ],
+      "label": "N8-O9",
+      "length_A": 1.2395020889940145
+    },
+    {
+      "atoms": [
+        7,
+        9
+      ],
+      "label": "N8-O10",
+      "length_A": 1.2395019931915123
+    },
+    {
+      "atoms": [
+        6,
+        1
+      ],
+      "label": "C7-C2",
+      "length_A": 1.3988598753156698
+    }
+  ],
+  "optimisation_steps": 14,
+  "optimisation_seconds": 334.1869358999975,
+  "single_point_seconds": 11.519752299995162,
+  "wall_seconds": 345.70668819999264,
+  "threads": 6,
+  "mmff94_energy_before_eV": 2.5458158122867274,
+  "mmff94_energy_after_eV": 1.6776382157929794,
+  "mmff94_energy_drop_eV": 0.8681775964937481,
+  "mmff94_converged": true
+}
