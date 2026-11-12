@@ -185,6 +185,67 @@ show("fig11_parity", 980)
 show("fig12_feature_importance", 900)
 show("fig13_screening_funnel", 720)"""),
 
+    ("md", """## Part 6 — Quantum dots: the same physics, tuned by size (Unit III)
+The **Brus equation** gives the band gap of a semiconductor nanocrystal of radius R:
+
+E(R) = E_bulk + h²/(8R²)·(1/m_e* + 1/m_h*) − 1.8e²/(4πε₀ε_r R)
+
+The second term is a particle in a sphere: shrink the box and the gap opens, exactly as a shorter conjugated chain
+has a larger gap. The third term is the electron–hole attraction, which lowers it a little.
+
+A dye's gap is fixed by its covalent structure; to change it you must make a different molecule. A dot's gap is tuned
+continuously by **size alone**. Same target, two engineering levers.
+
+**Predictions:** CdSe glows through the visible spectrum as it shrinks, but its bulk gap (1.74 eV) is already above
+the 1.34 eV optimum, so **no CdSe dot can reach it**. PbS (bulk 0.41 eV) can. The simple Brus model should
+overestimate the gap of the smallest dots, so we compare it with experimental sizing curves."""),
+    ("code", """curves, radius_at_optimum = pipeline.run_quantum_dots()
+for material, values in radius_at_optimum.items():
+    print(material, json.dumps(values, indent=1))
+q = results_io.get_value("quantum_dots")
+print()
+print(f"{'material':<6}{'R (nm)':>8}{'gap (eV)':>10}{'lambda (nm)':>13}{'confinement':>13}{'Coulomb':>9}")
+for material, rows in q["table"].items():
+    for row in rows:
+        print(f"{material:<6}{row['radius_nm']:>8.1f}{row['gap_eV']:>10.3f}{row['wavelength_nm']:>13.0f}"
+              f"{row['confinement_eV']:>13.3f}{row['coulomb_eV']:>9.3f}")
+h = q["sq_placement"]["hopv_experimental"]
+print()
+print(f"HOPV15 dyes ({h['count']}): mean SQ limit at their optical gap {h['mean_sq_limit']:.1%}, "
+      f"mean measured efficiency {h['mean_measured_pce']:.1%}, best {h['best_measured_pce']:.1%}")
+show("fig14_brus", 760)
+show("fig15_unifying", 900)"""),
+
+    ("md", """## Part 7 — What did the computation itself cost? (Unit V)
+Every wall time below was **measured** when the calculation ran. Energy is estimated as **CPU TDP (45 W) × time**,
+an **upper bound** rather than a measurement. Cost uses the BESCOM domestic tariff and CO₂ uses the CEA grid
+emission factor (all assumptions are listed in `results.json` under `energy.assumptions`).
+
+The extrapolation uses only measured numbers: the mean B3LYP time of the molecules we actually ran at QM9's size
+(9 heavy atoms), multiplied by the number of QM9 molecules. The ML figure is the measured time to predict all of
+them.
+
+**Entropy and information.** Landauer's principle says erasing one bit must dissipate at least kT ln 2 of heat, the
+entropy cost of forgetting. We compare that floor with what this laptop spends per floating-point operation."""),
+    ("code", """e = pipeline.run_energy()
+x = e["full_dataset_extrapolation"]
+print(x["headline"])
+for label in ("fastest_measured", "mean", "slowest_measured"):
+    v = x["b3lyp_all_qm9"][label]
+    print(f"  {label:<17} {v['years']:5.2f} years  {v['energy_kWh']:7.0f} kWh  Rs {v['cost_INR']:7.0f}  {v['co2_kg']:5.0f} kg CO2")
+print(f"  ML is {x['speedup_ml_over_dft']:.2e} times faster")
+t = e["project_total"]
+print()
+print(f"Everything computed for this project: {t['wall_seconds'] / 3600:.1f} h, {t['energy_kWh']:.3f} kWh, "
+      f"Rs {t['cost_INR']:.2f}, {t['co2_kg'] * 1000:.0f} g CO2 (upper bound)")
+l = e["landauer_comparison"]
+print()
+print(f"Landauer limit at {l['temperature_K']:.0f} K : {l['landauer_limit_J_per_bit']:.3e} J per bit")
+print(f"Laptop, per FLOP at peak : {l['cpu_energy_per_flop_J']:.3e} J  "
+      f"({l['orders_of_magnitude_above_landauer']:.1f} orders of magnitude above the limit)")
+show("fig16_time_per_molecule", 760)
+show("fig17_extrapolation", 900)"""),
+
     ("md", """## Validation
 Every check recorded during the run, and a NaN scan of everything written to `results.json`. If any check fails,
 the cell below raises an error, so a failure cannot slip by unnoticed."""),

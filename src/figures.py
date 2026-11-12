@@ -18,6 +18,7 @@ import matplotlib
 
 matplotlib.use("Agg")  # render to files; no window needed
 import matplotlib.pyplot as plt
+import matplotlib.colors
 import matplotlib.ticker
 import numpy as np
 
@@ -69,6 +70,7 @@ def apply_style():
         "lines.linewidth": 2.0,
         "legend.frameon": False,
         "svg.fonttype": "none",
+        "svg.hashsalt": "solar-dye",  # fixed element ids, so re-running gives identical SVGs
     })
 
 
@@ -77,7 +79,7 @@ def save_figure(figure, name):
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     png_path = FIGURES_DIR / f"{name}.png"
     figure.savefig(png_path, dpi=300, bbox_inches="tight")
-    figure.savefig(FIGURES_DIR / f"{name}.svg", bbox_inches="tight")
+    figure.savefig(FIGURES_DIR / f"{name}.svg", bbox_inches="tight", metadata={"Date": None})
     plt.close(figure)
     return png_path
 
@@ -724,3 +726,237 @@ def fig13_screening_funnel(funnel):
     axis.set_xlabel("Molecules (log scale)")
     figure.tight_layout()
     return save_figure(figure, "fig13_screening_funnel")
+
+
+# ---------------------------------------------------------------------------
+# Part 6 -- quantum dots (fig14 Brus curves, fig15 everything on the SQ curve)
+# ---------------------------------------------------------------------------
+
+MATERIAL_COLOURS = {"CdSe": VIOLET, "PbS": YELLOW}
+INFRARED_GREY = "#b9b8b3"
+
+
+def _colour_strip(axis, radii, rgb, label):
+    """A strip of emission colours along the radius axis; infrared/ultraviolet drawn grey."""
+    colours = [matplotlib.colors.to_rgb(INFRARED_GREY) if value is None else value for value in rgb]
+    image = np.array([colours])
+    axis.imshow(image, aspect="auto", extent=(radii[0], radii[-1], 0, 1), interpolation="nearest")
+    axis.set_yticks([])
+    axis.grid(False)
+    axis.set_ylabel(label, rotation=0, ha="right", va="center", fontsize=12)
+    for spine in axis.spines.values():
+        spine.set_visible(False)
+
+
+def fig14_brus(curves, target_gap, radius_at_optimum):
+    """
+    Gap vs radius from the Brus equation (solid) and experimental sizing curves (dashed),
+    with strips underneath showing the colour of light each dot emits.
+    """
+    apply_style()
+    figure, (gap_axis, cdse_strip, pbs_strip) = plt.subplots(
+        3, 1, sharex=True, figsize=(10, 8.2), gridspec_kw={"height_ratios": [5.2, 0.45, 0.45], "hspace": 0.12})
+    for material, curve in curves.items():
+        colour = MATERIAL_COLOURS[material]
+        gap_axis.plot(curve["radius_nm"], curve["gap_eV"], color=colour, linewidth=2.4,
+                      label=f"{material}, Brus equation")
+        gap_axis.plot(curve["radius_nm"], curve["experimental_gap_eV"], color=colour, linewidth=2.0,
+                      linestyle="--", label=f"{material}, experimental sizing curve")
+    gap_axis.axhline(target_gap, color=TEXT_SECONDARY, linewidth=1.2, linestyle=":")
+    gap_axis.text(5.95, target_gap + 0.04, f"SQ optimum {target_gap:.2f} eV", ha="right", va="bottom",
+                  fontsize=12, color=TEXT_SECONDARY)
+    pbs = radius_at_optimum["PbS"]
+    for key, marker in (("brus_nm", "o"), ("experimental_sizing_curve_nm", "s")):
+        gap_axis.plot(pbs[key], target_gap, marker, markersize=10, color=MATERIAL_COLOURS["PbS"],
+                      markeredgecolor=TEXT_PRIMARY, markeredgewidth=1.0, zorder=5)
+    gap_axis.annotate(f"R = {pbs['brus_nm']:.2f} nm (Brus)", xy=(pbs["brus_nm"], target_gap),
+                      xytext=(3.3, 2.6), fontsize=12,
+                      arrowprops={"arrowstyle": "-", "color": TEXT_SECONDARY, "linewidth": 1})
+    gap_axis.annotate(f"R = {pbs['experimental_sizing_curve_nm']:.2f} nm (experiment)",
+                      xy=(pbs["experimental_sizing_curve_nm"], target_gap),
+                      xytext=(1.6, 0.3), fontsize=12,
+                      arrowprops={"arrowstyle": "-", "color": TEXT_SECONDARY, "linewidth": 1})
+    gap_axis.set_ylim(0, 4.0)
+    gap_axis.set_xlim(1.0, 6.0)
+    gap_axis.set_ylabel("Band gap (eV)")
+    gap_axis.legend(loc="upper right", fontsize=11)
+
+    _colour_strip(cdse_strip, curves["CdSe"]["radius_nm"], curves["CdSe"]["rgb"], "CdSe")
+    _colour_strip(pbs_strip, curves["PbS"]["radius_nm"], curves["PbS"]["rgb"], "PbS")
+    pbs_strip.text(4.5, 0.5, "infrared (grey = not visible)", ha="center", va="center", fontsize=11,
+                   color=TEXT_PRIMARY)
+    pbs_strip.set_xlabel("Dot radius R (nm)")
+    figure.subplots_adjust(left=0.12)
+    return save_figure(figure, "fig14_brus")
+
+
+def fig15_unifying(placement, curves, target_gap):
+    """
+    The closing figure: molecules, real dyes and quantum dots on one Shockley-Queisser curve.
+
+    Top: the SQ limit vs gap, with Part 2 molecules and the screening candidates (B3LYP gaps)
+    and HOPV15 dyes at their measured optical gap; each HOPV15 dye's MEASURED efficiency is
+    drawn below its limit. Bottom: the range of gaps each quantum dot covers as its radius
+    goes from 6 nm down to 1 nm (tuning by size).
+    """
+    apply_style()
+    figure, (sq_axis, dot_axis) = plt.subplots(
+        2, 1, sharex=True, figsize=(13, 9), gridspec_kw={"height_ratios": [4.2, 1.25], "hspace": 0.08})
+    curve_gaps = np.array(placement["curve"]["gap_eV"])
+    curve_efficiency = np.array(placement["curve"]["efficiency"]) * 100
+    sq_axis.plot(curve_gaps, curve_efficiency, color=TEXT_PRIMARY, linewidth=2.2, label="Shockley–Queisser limit",
+                 zorder=2)
+
+    hopv = placement["hopv_experimental"]["points"]
+    sq_axis.plot([p["gap_eV"] for p in hopv], [p["measured_pce"] * 100 for p in hopv], "o", markersize=6,
+                 markerfacecolor="none", markeredgecolor=AQUA, markeredgewidth=1.1,
+                 label="HOPV15 dyes: measured efficiency", zorder=3)
+    sq_axis.plot([p["gap_eV"] for p in hopv], [p["sq_efficiency"] * 100 for p in hopv], "o", markersize=6,
+                 color=AQUA, markeredgecolor="white", markeredgewidth=0.6,
+                 label="HOPV15 dyes: limit at measured optical gap", zorder=4)
+    part2 = placement["part2_molecules_b3lyp"]
+    sq_axis.plot([p["gap_eV"] for p in part2], [p["sq_efficiency"] * 100 for p in part2], "o", markersize=10,
+                 color=BLUE, markeredgecolor="white", markeredgewidth=1.0,
+                 label="Part 2 molecules (B3LYP gap)", zorder=5)
+    candidates = placement["screening_candidates_b3lyp"]
+    sq_axis.plot([p["gap_eV"] for p in candidates], [p["sq_efficiency"] * 100 for p in candidates], "*",
+                 markersize=16, color=BLUE, markeredgecolor=TEXT_PRIMARY, markeredgewidth=0.8,
+                 label="ML screen top 3 (B3LYP gap)", zorder=6)
+    for point in part2:
+        if point["name"] in ("terthiophene", "benzene", "bithiophene", "azobenzene"):
+            sq_axis.annotate(point["name"], xy=(point["gap_eV"], point["sq_efficiency"] * 100),
+                             xytext=(0, 14), textcoords="offset points", ha="center", fontsize=11,
+                             color=TEXT_PRIMARY, rotation=60)
+    sq_axis.axvline(target_gap, color=TEXT_SECONDARY, linewidth=1, linestyle=":")
+    sq_axis.text(target_gap + 0.06, 35.2, f"optimum {target_gap:.2f} eV", fontsize=12, color=TEXT_SECONDARY)
+    sq_axis.set_ylabel("Power conversion efficiency (%)")
+    sq_axis.set_ylim(-1, 38)
+    sq_axis.legend(loc="upper right", fontsize=11)
+
+    # Bottom panel: the gap range a dot can reach by changing its radius from 6 nm to 1 nm.
+    dot_axis.grid(axis="y", visible=False)
+    for row, material in enumerate(("PbS", "CdSe")):
+        curve = curves[material]
+        gaps = curve["gap_eV"]
+        visible = gaps <= curve_gaps.max()
+        dot_axis.plot(gaps[visible], np.full(visible.sum(), row), color=MATERIAL_COLOURS[material],
+                      linewidth=9, solid_capstyle="butt")
+        tick_radii = {"PbS": (6.0, 3.0, 2.0, 1.5), "CdSe": (6.0, 2.0, 1.5, 1.0)}[material]
+        for radius in tick_radii:
+            gap = float(np.interp(radius, curve["radius_nm"], gaps))
+            if gap <= curve_gaps.max():
+                dot_axis.plot(gap, row, "|", markersize=18, color=TEXT_PRIMARY, markeredgewidth=1.4)
+                dot_axis.text(gap, row + 0.32, f"{radius:g} nm", ha="center", va="bottom", fontsize=10.5,
+                              color=TEXT_SECONDARY)
+    dot_axis.axvline(target_gap, color=TEXT_SECONDARY, linewidth=1, linestyle=":")
+    dot_axis.set_yticks([0, 1])
+    dot_axis.set_yticklabels(["PbS dot", "CdSe dot"])
+    dot_axis.set_ylim(-0.6, 1.9)
+    dot_axis.set_xlim(0.3, curve_gaps.max())
+    dot_axis.set_xlabel("Band gap (eV)")
+    return save_figure(figure, "fig15_unifying")
+
+
+# ---------------------------------------------------------------------------
+# Part 7 -- cost of the computation (fig16 time per molecule, fig17 extrapolation)
+# ---------------------------------------------------------------------------
+
+def _duration_text(seconds):
+    """Human-readable duration."""
+    if seconds < 1e-3:
+        return f"{seconds * 1e6:.1f} µs"
+    if seconds < 1:
+        return f"{seconds * 1e3:.1f} ms"
+    if seconds < 120:
+        return f"{seconds:.1f} s"
+    if seconds < 7200:
+        return f"{seconds / 60:.1f} min"
+    if seconds < 3 * 86400:
+        return f"{seconds / 3600:.1f} h"
+    if seconds < 365.25 * 86400:
+        return f"{seconds / 86400:.0f} days"
+    return f"{seconds / (365.25 * 86400):.1f} years"
+
+
+def fig16_time_per_molecule(per_method, hf_seconds, b3lyp_seconds, qm9_size_seconds, model_labels):
+    """Wall time per molecule (log scale): HF, B3LYP and ML inference, individual runs as dots."""
+    apply_style()
+    rows = [
+        ("HF/6-31G*\n(Part 2, 9 molecules)", per_method["HF_part2"]["mean_seconds_per_molecule"], hf_seconds,
+         METHOD_COLOURS["HF"]),
+        ("B3LYP/6-31G*\n(Part 2, 9 molecules)", per_method["B3LYP_part2"]["mean_seconds_per_molecule"],
+         b3lyp_seconds, METHOD_COLOURS["B3LYP"]),
+        ("B3LYP/6-31G*\n(QM9-sized, 9 heavy atoms)", per_method["B3LYP_9_heavy_atoms"]["mean_seconds_per_molecule"],
+         qm9_size_seconds, METHOD_COLOURS["B3LYP"]),
+    ]
+    for kind in ("ridge", "random_forest", "gradient_boosting"):
+        rows.append((f"ML inference\n({model_labels[kind].lower()})",
+                     per_method[f"ML_inference_{kind}"]["mean_seconds_per_molecule"], [], MODEL_COLOURS[kind]))
+    positions = np.arange(len(rows))
+    figure, axis = plt.subplots(figsize=(11, 6.6))
+    axis.set_axisbelow(True)
+    axis.barh(positions, [row[1] for row in rows], height=0.6, color=[row[3] for row in rows], left=1e-8)
+    for position, (_, mean, individual, _) in zip(positions, rows):
+        if individual:
+            axis.plot(individual, np.full(len(individual), position), "o", markersize=5, color=TEXT_PRIMARY,
+                      alpha=0.55, zorder=3)
+        axis.text(max([mean] + list(individual)) * 1.6, position, _duration_text(mean), va="center", fontsize=13,
+                  color=TEXT_PRIMARY)
+    axis.set_xscale("log")
+    axis.set_xlim(1e-8, 3e5)
+    axis.set_yticks(positions)
+    axis.set_yticklabels([row[0] for row in rows], fontsize=12)
+    axis.invert_yaxis()
+    axis.grid(axis="y", visible=False)
+    axis.set_xlabel("Wall time per molecule (s, log scale; bar = mean, dots = individual runs)")
+    figure.tight_layout()
+    return save_figure(figure, "fig16_time_per_molecule")
+
+
+def fig17_extrapolation(extrapolation, project_total, all_quantum_seconds, training_seconds):
+    """
+    What it would cost to treat all of QM9 with DFT vs with the ML surrogate.
+    (a) wall time, (b) energy (upper bound, TDP x time), both on log scales.
+    """
+    apply_style()
+    dft = extrapolation["b3lyp_all_qm9"]
+    ml = extrapolation["ml_screen_all_qm9"]
+    tdp = project_total["energy_J"] / project_total["wall_seconds"]
+    rows = [
+        ("B3LYP on all of QM9\n(extrapolated)", dft["mean"]["wall_seconds"], BLUE,
+         (dft["fastest_measured"]["wall_seconds"], dft["slowest_measured"]["wall_seconds"])),
+        ("All HF + DFT run for\nthis project (measured)", all_quantum_seconds, BLUE, None),
+        ("ML training, all three\nmodels with grid search", sum(training_seconds.values()), MODEL_COLOURS["random_forest"],
+         None),
+        ("ML screen of all of QM9\n(measured)", ml["wall_seconds"], MODEL_COLOURS[ml["model"]], None),
+    ]
+    positions = np.arange(len(rows))
+    figure, (time_axis, energy_axis) = plt.subplots(1, 2, sharey=True, figsize=(15, 5.6),
+                                                    gridspec_kw={"wspace": 0.14})
+    for axis, scale, unit in ((time_axis, 1.0, "s"), (energy_axis, tdp / 3.6e6, "kWh")):
+        axis.set_axisbelow(True)
+        values = [row[1] * scale for row in rows]
+        axis.barh(positions, values, height=0.6, color=[row[2] for row in rows], left=1e-9)
+        for position, row in zip(positions, rows):
+            if row[3] is not None:
+                axis.errorbar(row[1] * scale, position, xerr=[[row[1] * scale - row[3][0] * scale],
+                                                                [row[3][1] * scale - row[1] * scale]],
+                              fmt="none", ecolor=TEXT_PRIMARY, elinewidth=1.3, capsize=5)
+        axis.set_xscale("log")
+        axis.grid(axis="y", visible=False)
+    for position, row in zip(positions, rows):
+        upper = row[3][1] if row[3] is not None else row[1]
+        time_axis.text(upper * 2.0, position, _duration_text(row[1]), va="center", fontsize=13)
+        kwh = row[1] * tdp / 3.6e6
+        energy_axis.text(upper * tdp / 3.6e6 * 2.0, position,
+                         f"{kwh:,.0f} kWh" if kwh >= 10 else (f"{kwh:.2g} kWh" if kwh >= 0.01 else f"{kwh * 1000:.2g} Wh"), va="center", fontsize=13)
+    time_axis.set_xlim(1e-2, 1e11)
+    energy_axis.set_xlim(1e-7, 1e7)
+    time_axis.set_yticks(positions)
+    time_axis.set_yticklabels([row[0] for row in rows], fontsize=12)
+    time_axis.invert_yaxis()
+    time_axis.set_xlabel("Wall time (s, log scale)")
+    energy_axis.set_xlabel("Energy, upper bound: 45 W × time (kWh, log scale)")
+    _panel_letter(time_axis, "a")
+    _panel_letter(energy_axis, "b")
+    return save_figure(figure, "fig17_extrapolation")

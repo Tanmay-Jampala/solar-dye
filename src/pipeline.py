@@ -705,6 +705,11 @@ def run_model():
                             max(test_mae["random_forest"], test_mae["gradient_boosting"]) < test_mae["ridge"])
     results_io.record_check("every top candidate passes the dye-likeness filter", N_TOP_CANDIDATES,
                             int(top["passes_dye_filter"].sum()), bool(top["passes_dye_filter"].all()))
+    # A model that cannot beat "always predict the mean" (error ~ one standard deviation) is useless.
+    target_std = float(np.std(gaps[split["test"]], ddof=0))
+    best_test_mae = bundle["models"][best]["metrics"]["test"]["MAE_eV"]
+    results_io.record_check("model test MAE is below the standard deviation of the target",
+                            f"< {target_std:.4f} eV", round(best_test_mae, 4), best_test_mae < target_std)
     results_io.record_check("top 3 candidates have a real B3LYP gap", N_DFT_VERIFIED,
                             sum(record["b3lyp_6_31Gs_gap_eV"] is not None for record in verified),
                             all(record["b3lyp_6_31Gs_gap_eV"] is not None for record in verified))
@@ -713,3 +718,237 @@ def run_model():
     figures.fig12_feature_importance(bundle, DESCRIPTOR_LABELS, model.MODEL_ORDER, model.MODEL_LABELS, best)
     figures.fig13_screening_funnel(funnel)
     return bundle, candidates
+
+
+# ---------------------------------------------------------------------------
+# Part 6 -- quantum dots (Brus equation)
+# ---------------------------------------------------------------------------
+
+def run_quantum_dots():
+    """Part 6: Brus curves for CdSe and PbS, the radius that reaches the SQ optimum, fig14 and fig15."""
+    from src import figures
+    from src import quantum_dots as qd
+
+    target_gap = results_io.get_value("sq.optimum_gap_eV")
+    curves = {material: qd.brus_curve(material) for material in qd.MATERIALS}
+    radius_at_optimum = {material: {"brus_nm": qd.radius_for_gap_nm(target_gap, material, "brus"),
+                                    "experimental_sizing_curve_nm": qd.radius_for_gap_nm(target_gap, material,
+                                                                                          "experimental")}
+                         for material in qd.MATERIALS}
+    for material, values in radius_at_optimum.items():
+        if values["brus_nm"] is None:
+            values["note"] = (f"no radius reaches {target_gap:.2f} eV: the bulk gap "
+                              f"({qd.MATERIALS[material]['bulk_gap_eV']} eV) is already above it and "
+                              "confinement only raises the gap")
+        else:
+            values["diameter_brus_nm"] = 2 * values["brus_nm"]
+            values["diameter_experimental_nm"] = 2 * values["experimental_sizing_curve_nm"]
+            values["brus_over_experimental_radius"] = values["brus_nm"] / values["experimental_sizing_curve_nm"]
+
+    def plain(curve):
+        """JSON-friendly curve: NaN (outside the experimental fit's range) becomes None."""
+        return {
+            "radius_nm": curve["radius_nm"].tolist(),
+            "gap_eV": curve["gap_eV"].tolist(),
+            "wavelength_nm": curve["wavelength_nm"].tolist(),
+            "experimental_gap_eV": [None if not np.isfinite(v) else float(v) for v in curve["experimental_gap_eV"]],
+            "rgb": [None if rgb is None else [round(c, 4) for c in rgb] for rgb in curve["rgb"]],
+        }
+
+    sample_radii = [1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0]
+    results_io.set_value("quantum_dots", {
+        "equation": "E(R) = E_bulk + h^2/(8R^2) (1/m_e* + 1/m_h*) - 1.8 e^2 / (4 pi eps0 eps_r R)",
+        "parameters_used": qd.MATERIALS,
+        "experimental_sizing_curves": qd.EXPERIMENTAL_SIZING,
+        "colour_conversion": "gap -> wavelength = hc/E -> approximate RGB (Bruton's piecewise approximation); "
+                             "emission colour ignoring the Stokes shift",
+        "target_gap_eV": target_gap,
+        "radius_at_optimum_nm": radius_at_optimum,
+        "brus_curve": {material: plain(curve) for material, curve in curves.items()},
+        "table": {material: [{"radius_nm": r, "gap_eV": float(qd.brus_gap_eV(r, material)),
+                              "wavelength_nm": float(1239.8419843320026 / qd.brus_gap_eV(r, material)),
+                              **{k: float(v) for k, v in qd.brus_terms_eV(r, material).items()}}
+                             for r in sample_radii] for material in qd.MATERIALS},
+    })
+
+    for material, curve in curves.items():
+        monotonic = bool(np.all(np.diff(curve["gap_eV"]) < 0))
+        results_io.record_check(f"Brus curve is monotonically decreasing in radius ({material}, 1-6 nm)", True,
+                                monotonic, monotonic)
+    for material, curve in curves.items():
+        approaches_bulk = bool(curve["gap_eV"][-1] > qd.MATERIALS[material]["bulk_gap_eV"])
+        results_io.record_check(f"{material} dot gap stays above the bulk gap at 6 nm", ">", round(
+            float(curve["gap_eV"][-1]), 4), approaches_bulk)
+    pbs = radius_at_optimum["PbS"]["brus_nm"]
+    results_io.record_check("a PbS dot radius between 1 and 6 nm reaches the SQ optimum gap", "1-6 nm",
+                            None if pbs is None else round(pbs, 4), pbs is not None)
+    cdse_brus = curves["CdSe"]["gap_eV"]
+    cdse_expt = curves["CdSe"]["experimental_gap_eV"]
+    overlap = np.isfinite(cdse_expt)
+    results_io.record_check("Brus equation overestimates the CdSe gap vs experiment wherever both exist",
+                            "Brus > experiment", bool(np.all(cdse_brus[overlap] > cdse_expt[overlap])),
+                            bool(np.all(cdse_brus[overlap] > cdse_expt[overlap])))
+
+    placement = place_on_sq_curve(curves)
+    results_io.set_value("quantum_dots.sq_placement", placement)
+    figures.fig14_brus(curves, target_gap, radius_at_optimum)
+    figures.fig15_unifying(placement, curves, target_gap)
+    return curves, radius_at_optimum
+
+
+def place_on_sq_curve(curves, gap_max_eV=7.0):
+    """
+    Everything in the project on one Shockley-Queisser curve (data for fig15).
+
+    Molecules are placed at their gap: Part 2 and the screening candidates at their B3LYP
+    gap, HOPV15 dyes at their EXPERIMENTAL optical gap (with their measured efficiency
+    alongside, to show how far real devices sit below the limit). Quantum dots are a
+    range of gaps, one per radius.
+    """
+    import pandas as pd
+
+    from src import spectra
+    from src.constants import PROCESSED_DIR
+
+    wide = spectra.shockley_queisser_curve(0.3, gap_max_eV, 0.01)
+    flux, power = wide["flux_lookup"], wide["incident_power_W_m2"]
+
+    def efficiency(gap):
+        return float(spectra.sq_efficiency(gap, flux, power))
+
+    part2 = [{"name": m["name"], "gap_eV": m["B3LYP"]["gap_eV"], "sq_efficiency": efficiency(m["B3LYP"]["gap_eV"])}
+             for m in results_io.get_value("quantum.molecules")]
+    candidates = [{"name": f"screen rank {c['rank']}", "smiles": c["smiles"], "gap_eV": c["b3lyp_6_31Gs_gap_eV"],
+                   "sq_efficiency": efficiency(c["b3lyp_6_31Gs_gap_eV"])}
+                  for c in results_io.get_value("model.top_candidates") if c["b3lyp_6_31Gs_gap_eV"] is not None]
+    hopv = pd.read_csv(PROCESSED_DIR / "hopv_clean.csv")
+    hopv = hopv[hopv["optical_gap_eV"].notna() & hopv["pce_percent"].notna()]
+    hopv_points = [{"gap_eV": float(row.optical_gap_eV), "sq_efficiency": efficiency(row.optical_gap_eV),
+                    "measured_pce": float(row.pce_percent) / 100.0} for row in hopv.itertuples()]
+    dots = {}
+    for material, curve in curves.items():
+        mask = curve["gap_eV"] <= gap_max_eV
+        dots[material] = {"radius_nm": curve["radius_nm"][mask].tolist(), "gap_eV": curve["gap_eV"][mask].tolist(),
+                          "sq_efficiency": [efficiency(gap) for gap in curve["gap_eV"][mask]]}
+    return {
+        "curve": {"gap_eV": wide["gaps_eV"].tolist(), "efficiency": wide["efficiencies"].tolist()},
+        "part2_molecules_b3lyp": part2,
+        "screening_candidates_b3lyp": candidates,
+        "hopv_experimental": {"count": len(hopv_points), "points": hopv_points,
+                              "mean_sq_limit": float(np.mean([p["sq_efficiency"] for p in hopv_points])),
+                              "mean_measured_pce": float(np.mean([p["measured_pce"] for p in hopv_points])),
+                              "best_measured_pce": float(max(p["measured_pce"] for p in hopv_points))},
+        "quantum_dots": dots,
+        "note": ("molecular gaps here are Kohn-Sham HOMO-LUMO gaps, which Part 2 showed overestimate the optical "
+                 "gap; HOPV15 points use measured optical gaps"),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Part 7 -- the cost of the computation
+# ---------------------------------------------------------------------------
+
+def time_inference(bundle, kind, table, repeats=3):
+    """Median wall time (s) to predict every row of `table` with one model (measured now)."""
+    import time
+
+    from src import model
+
+    durations = []
+    for _ in range(repeats):
+        start = time.perf_counter()
+        model.predict(bundle, kind, table)
+        durations.append(time.perf_counter() - start)
+    return float(np.median(durations))
+
+
+def run_energy():
+    """Part 7: measured timings -> energy (upper bound), cost, CO2, the full-dataset extrapolation, Landauer."""
+    from src import energy, figures, model
+
+    qm9, qm9_table, _, _ = load_descriptor_tables()
+    bundle = model.train_models(qm9_table, qm9["gap_eV"].to_numpy())
+    n_molecules = len(qm9_table)
+
+    timings = energy.quantum_timings()
+    part2 = [row for row in timings if row["kind"] == "Part 2 molecule"]
+    hf_seconds = [row["wall_seconds"] for row in part2 if row["method"] == "HF"]
+    b3lyp_seconds = [row["wall_seconds"] for row in part2 if row["method"] == "B3LYP"]
+    # QM9 molecules almost all have 9 heavy atoms; these are every B3LYP run we made at exactly 9.
+    qm9_size = [row for row in timings if row["method"] == "B3LYP" and row["n_heavy_atoms"] == 9
+                and row["kind"] != "torsion scan point"]
+    qm9_size_seconds = [row["wall_seconds"] for row in qm9_size]
+
+    inference_total = {kind: time_inference(bundle, kind, qm9_table) for kind in model.MODEL_ORDER}
+    training_seconds = {kind: float(sum(entry["fit_seconds"] for entry in bundle["models"][kind]["search"]))
+                        for kind in model.MODEL_ORDER}
+
+    per_method = {
+        "HF_part2": {"n": len(hf_seconds), "mean_seconds_per_molecule": float(np.mean(hf_seconds)),
+                     "min_seconds": float(min(hf_seconds)), "max_seconds": float(max(hf_seconds)),
+                     **energy.energy_cost_carbon(sum(hf_seconds))},
+        "B3LYP_part2": {"n": len(b3lyp_seconds), "mean_seconds_per_molecule": float(np.mean(b3lyp_seconds)),
+                        "min_seconds": float(min(b3lyp_seconds)), "max_seconds": float(max(b3lyp_seconds)),
+                        **energy.energy_cost_carbon(sum(b3lyp_seconds))},
+        "B3LYP_9_heavy_atoms": {"n": len(qm9_size), "molecules": [row["name"] for row in qm9_size],
+                                "mean_seconds_per_molecule": float(np.mean(qm9_size_seconds)),
+                                "min_seconds": float(min(qm9_size_seconds)),
+                                "max_seconds": float(max(qm9_size_seconds))},
+        **{f"ML_inference_{kind}": {"total_seconds_for_dataset": inference_total[kind],
+                                    "mean_seconds_per_molecule": inference_total[kind] / n_molecules,
+                                    **energy.energy_cost_carbon(inference_total[kind])}
+           for kind in model.MODEL_ORDER},
+        **{f"ML_training_{kind}": {"grid_search_seconds": training_seconds[kind],
+                                   **energy.energy_cost_carbon(training_seconds[kind])}
+           for kind in model.MODEL_ORDER},
+    }
+    all_quantum_seconds = sum(row["wall_seconds"] for row in timings)
+    project_total = energy.energy_cost_carbon(all_quantum_seconds + sum(training_seconds.values())
+                                              + sum(inference_total.values()))
+
+    best = model.best_model_kind(bundle)
+    dft_full = {label: energy.energy_cost_carbon(seconds * n_molecules)
+                for label, seconds in (("mean", np.mean(qm9_size_seconds)), ("fastest_measured", min(qm9_size_seconds)),
+                                       ("slowest_measured", max(qm9_size_seconds)))}
+    for estimate in dft_full.values():
+        estimate["years"] = estimate["wall_seconds"] / energy.SECONDS_PER_YEAR
+    ml_full = energy.energy_cost_carbon(inference_total[best])
+    extrapolation = {
+        "molecules": n_molecules,
+        "basis": ("mean measured B3LYP/6-31G* optimisation time of the molecules we ran with exactly 9 heavy "
+                  "atoms (QM9's typical size), times the number of QM9 molecules; fastest/slowest measured "
+                  "times give the bracket"),
+        "b3lyp_all_qm9": dft_full,
+        "ml_screen_all_qm9": {"model": best, **ml_full},
+        "speedup_ml_over_dft": float(dft_full["mean"]["wall_seconds"] / ml_full["wall_seconds"]),
+        "headline": (f"Running B3LYP on all {n_molecules:,} QM9 molecules on this laptop would take "
+                     f"{dft_full['mean']['years']:.1f} years and {dft_full['mean']['energy_kWh']:,.0f} kWh "
+                     f"(upper bound); the ML surrogate screens them in {ml_full['wall_seconds']:.2f} seconds."),
+    }
+    results_io.set_value("energy", {
+        "assumptions": energy.ASSUMPTIONS,
+        "method": "energy = CPU TDP x measured wall time (upper-bound estimate, not a measurement)",
+        "per_method": per_method,
+        "all_quantum_calculations": {"count": len(timings), **energy.energy_cost_carbon(all_quantum_seconds)},
+        "project_total": project_total,
+        "full_dataset_extrapolation": extrapolation,
+        "landauer_comparison": energy.landauer_comparison(project_total["energy_J"]),
+        "timings": timings,
+    })
+
+    landauer = results_io.get_value("energy.landauer_comparison")
+    results_io.record_check("Landauer limit kT ln 2 at 300 K is 2.87e-21 J (+-0.01e-21)", 2.87e-21,
+                            landauer["landauer_limit_J_per_bit"],
+                            abs(landauer["landauer_limit_J_per_bit"] - 2.87e-21) < 0.01e-21)
+    results_io.record_check("ML screen of QM9 is at least 10^6 times faster than B3LYP", ">= 1e6",
+                            extrapolation["speedup_ml_over_dft"], extrapolation["speedup_ml_over_dft"] >= 1e6)
+    results_io.record_check("B3LYP is slower than HF on average for the Part 2 molecules", "B3LYP > HF",
+                            [round(np.mean(b3lyp_seconds), 1), round(np.mean(hf_seconds), 1)],
+                            np.mean(b3lyp_seconds) > np.mean(hf_seconds))
+    results_io.record_check("every quantum calculation has a measured, positive wall time", len(timings),
+                            sum(row["wall_seconds"] > 0 for row in timings),
+                            all(row["wall_seconds"] > 0 for row in timings))
+
+    figures.fig16_time_per_molecule(per_method, hf_seconds, b3lyp_seconds, qm9_size_seconds, model.MODEL_LABELS)
+    figures.fig17_extrapolation(extrapolation, project_total, all_quantum_seconds, training_seconds)
+    return results_io.get_value("energy")
