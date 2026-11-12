@@ -472,3 +472,244 @@ def run_torsion():
     figures.fig06_torsion_pes(points, summary)
     figures.fig07_torsion_gap(points, summary)
     return points, summary
+
+
+# ---------------------------------------------------------------------------
+# Part 4 -- descriptors, Lipinski, dye-likeness
+# ---------------------------------------------------------------------------
+
+# Hand-checkable values of the conjugation proxy, used as a unit test of our own code.
+CONJUGATION_EXAMPLES = {"CC": 0, "C=C": 2, "C=CC=C": 4, "c1ccccc1": 6, "Nc1ccccc1": 7,
+                        "c1ccc(-c2ccccc2)cc1": 12, "C=CCC=C": 2}
+
+
+def load_descriptor_tables():
+    """Cleaned QM9 and HOPV15 with their descriptor tables (cached after the first run)."""
+    import pandas as pd
+
+    from src.constants import PROCESSED_DIR
+    from src.descriptors import cached_descriptor_table
+
+    qm9 = pd.read_csv(PROCESSED_DIR / "qm9_clean.csv")
+    hopv = pd.read_csv(PROCESSED_DIR / "hopv_clean.csv")
+    return qm9, cached_descriptor_table("qm9", qm9["smiles"]), hopv, cached_descriptor_table("hopv", hopv["smiles"])
+
+
+def filter_summary(table):
+    """Pass counts and rates for Lipinski and each dye-filter rule on one descriptor table."""
+    from src.descriptors import DYE_FILTER_RULES
+
+    n_rows = len(table)
+    return {
+        "molecules": n_rows,
+        "lipinski_pass_count": int(table["passes_lipinski"].sum()),
+        "lipinski_pass_rate": float(table["passes_lipinski"].mean()),
+        "dye_filter_pass_count": int(table["passes_dye_filter"].sum()),
+        "dye_filter_pass_rate": float(table["passes_dye_filter"].mean()),
+        "dye_rule_pass_counts": {rule: int(table[f"dye_{rule}"].sum()) for rule in DYE_FILTER_RULES},
+        "both_filters_pass_count": int((table["passes_lipinski"] & table["passes_dye_filter"]).sum()),
+    }
+
+
+def run_descriptors():
+    """Part 4: descriptors for QM9 and HOPV15, Lipinski vs the dye filter, correlations with the gap."""
+    from rdkit import Chem
+
+    from src import descriptors, figures
+
+    qm9, qm9_table, hopv, hopv_table = load_descriptor_tables()
+    gaps = qm9["gap_eV"].to_numpy()
+    correlations = descriptors.correlations_with_gap(qm9_table, gaps)
+    qm9_summary = filter_summary(qm9_table)
+    hopv_summary = filter_summary(hopv_table)
+
+    results_io.set_value("descriptors", {
+        "names": descriptors.DESCRIPTOR_NAMES,
+        "labels": descriptors.DESCRIPTOR_LABELS,
+        "conjugation_proxy_definition": descriptors.largest_conjugated_system.__doc__.strip(),
+        "lipinski_rules": {name: f"{op} {limit}" for name, (op, limit) in descriptors.LIPINSKI_RULES.items()},
+        "lipinski_max_violations": descriptors.LIPINSKI_MAX_VIOLATIONS,
+        "lipinski_pass_rate": qm9_summary["lipinski_pass_rate"],
+        "dye_filter_pass_rate": qm9_summary["dye_filter_pass_rate"],
+        "dye_filter_status": "our own construction by analogy with Lipinski; not a literature standard",
+        "dye_filter_rules": descriptors.DYE_FILTER_RULES,
+        "dye_filter_smarts": {"donors": descriptors.DONOR_SMARTS, "acceptors": descriptors.ACCEPTOR_SMARTS,
+                              "unstable": descriptors.UNSTABLE_SMARTS},
+        "qm9": qm9_summary,
+        "hopv": hopv_summary,
+        "correlations_with_gap": correlations,
+        "summary_statistics": {
+            name: {"mean": float(qm9_table[name].mean()), "std": float(qm9_table[name].std(ddof=0)),
+                   "min": float(qm9_table[name].min()), "max": float(qm9_table[name].max())}
+            for name in descriptors.DESCRIPTOR_NAMES},
+    })
+
+    # Our own conjugation code against values that can be counted by hand.
+    computed = {smiles: descriptors.largest_conjugated_system(Chem.MolFromSmiles(smiles))
+                for smiles in CONJUGATION_EXAMPLES}
+    results_io.record_check("hand-written conjugation proxy matches hand-counted examples",
+                            CONJUGATION_EXAMPLES, computed, computed == CONJUGATION_EXAMPLES)
+    results_io.record_check("descriptors computed for every cleaned QM9 and HOPV15 molecule",
+                            [len(qm9), len(hopv)], [len(qm9_table), len(hopv_table)],
+                            len(qm9_table) == len(qm9) and len(hopv_table) == len(hopv))
+    conjugation_r = correlations["largest_conjugated_system"]["pearson"]
+    results_io.record_check("larger conjugated system correlates with a smaller gap (Pearson r < 0)", "< 0",
+                            round(conjugation_r, 3), conjugation_r < 0)
+    # The filter must accept the textbook push-pull molecule and reject plain benzene (no donor/acceptor).
+    probe = descriptors.descriptor_table(["Nc1ccc(cc1)[N+](=O)[O-]", "c1ccccc1"])
+    results_io.record_check("dye filter accepts 4-nitroaniline and rejects benzene", [True, False],
+                            probe["passes_dye_filter"].tolist(), probe["passes_dye_filter"].tolist() == [True, False])
+
+    figures.fig09_descriptor_distributions(qm9_table, gaps, descriptors.DESCRIPTOR_LABELS)
+    figures.fig10_correlation_heatmap(qm9_table, gaps, descriptors.DESCRIPTOR_LABELS)
+    return qm9_table, hopv_table
+
+
+# ---------------------------------------------------------------------------
+# Part 5 -- ML surrogate, screen, DFT verification
+# ---------------------------------------------------------------------------
+
+N_TOP_CANDIDATES = 10
+N_DFT_VERIFIED = 3
+# Funnel display threshold: candidates whose predicted gap is below 4.0 eV (310 nm, the near-UV).
+# A presentation choice for fig13 only; the ranking itself uses distance from the SQ optimum alone.
+SHORTLIST_MAX_GAP_EV = 4.0
+
+
+def verify_with_dft(smiles_list):
+    """B3LYP/6-31G* on each candidate (cached; the slow part can be run with src.run_candidate_dft)."""
+    from src import quantum
+
+    return [quantum.run_molecule(quantum.candidate_name(smiles), "B3LYP", verbose=False,
+                                 spec=quantum.candidate_spec(smiles)) for smiles in smiles_list]
+
+
+def run_model():
+    """Part 5: train the three models, screen QM9 toward the SQ optimum, verify the top 3 with B3LYP."""
+    from src import figures, model
+    from src.descriptors import DESCRIPTOR_LABELS, DESCRIPTOR_NAMES
+
+    qm9, qm9_table, hopv, hopv_table = load_descriptor_tables()
+    gaps = qm9["gap_eV"].to_numpy()
+    bundle = model.train_models(qm9_table, gaps)
+    best = model.best_model_kind(bundle)
+    split = bundle["split"]
+    target_gap = results_io.get_value("sq.optimum_gap_eV")
+
+    # --- metrics and importances -------------------------------------------------------------
+    results_io.set_value("model", {
+        "target": "QM9 B3LYP/6-31G(2df,p) HOMO-LUMO gap (eV)",
+        "features": DESCRIPTOR_NAMES,
+        "split": {"method": "random 80/10/10, seed 42 (justification in src/model.py)",
+                  **{part: int(len(rows)) for part, rows in split.items()}},
+        "standardisation": "z-score, population std (ddof=0), fitted on training rows only",
+        "selection": "hyperparameters chosen by validation MAE; test set used once, for reporting",
+        "best_model": best,
+        "metrics": {kind: {"test": bundle["models"][kind]["metrics"]["test"],
+                           "validation": bundle["models"][kind]["metrics"]["validation"],
+                           "train": bundle["models"][kind]["metrics"]["train"],
+                           "hyperparameters": bundle["models"][kind]["params"],
+                           "fit_seconds": bundle["models"][kind]["fit_seconds"],
+                           "grid_search": bundle["models"][kind]["search"]}
+                    for kind in model.MODEL_ORDER},
+        "feature_importance": {kind: {"permutation_importance_test_MAE_increase_eV":
+                                      bundle["models"][kind]["permutation_importance_eV"],
+                                      "permutation_importance_std_eV":
+                                      bundle["models"][kind]["permutation_importance_std_eV"]}
+                               for kind in model.MODEL_ORDER},
+        "ridge_coefficients_eV_per_std": bundle["ridge_coefficients_eV_per_std"],
+        # Everything the website needs to run the ridge model in JavaScript.
+        "ridge_for_web": {"coefficients_eV_per_std": bundle["ridge_coefficients_eV_per_std"],
+                          "intercept_eV": bundle["ridge_intercept_eV"],
+                          "feature_mean": dict(zip(DESCRIPTOR_NAMES, bundle["standardiser"].mean_.tolist())),
+                          "feature_std_ddof0": dict(zip(DESCRIPTOR_NAMES, bundle["standardiser"].std_.tolist()))},
+    })
+
+    # --- screen QM9 ------------------------------------------------------------------------
+    screen = qm9_table.copy()
+    screen["qm9_gap_eV"] = gaps
+    screen["split"] = model.split_membership(len(screen), split)
+    ranked = model.rank_candidates(screen, model.predict(bundle, best, qm9_table), target_gap)
+    top = ranked.head(N_TOP_CANDIDATES).copy()
+    top["rank"] = range(1, len(top) + 1)
+    columns = ["rank", "smiles", "predicted_gap_eV", "distance_from_target_eV", "qm9_gap_eV", "split",
+               "largest_conjugated_system"]
+    candidates = model.frame_records(top, columns)
+    dft = verify_with_dft([record["smiles"] for record in candidates[:N_DFT_VERIFIED]])
+    for index, record in enumerate(candidates):
+        record["b3lyp_6_31Gs_gap_eV"] = dft[index]["gap_eV"] if index < len(dft) else None
+        record["b3lyp_wall_seconds"] = dft[index]["wall_seconds"] if index < len(dft) else None
+    verified = candidates[:N_DFT_VERIFIED]
+    errors = [record["predicted_gap_eV"] - record["b3lyp_6_31Gs_gap_eV"] for record in verified]
+
+    funnel = [
+        {"stage": "cleaned QM9", "count": len(qm9_table)},
+        {"stage": "pass dye-likeness filter", "count": int(qm9_table["passes_dye_filter"].sum())},
+        {"stage": f"predicted gap < {SHORTLIST_MAX_GAP_EV:.1f} eV",
+         "count": int((ranked["predicted_gap_eV"] < SHORTLIST_MAX_GAP_EV).sum())},
+        {"stage": f"top {N_TOP_CANDIDATES}, closest to {target_gap:.2f} eV", "count": len(top)},
+        {"stage": "verified with B3LYP/6-31G*", "count": len(verified)},
+    ]
+    results_io.set_value("model.top_candidates", candidates)
+    results_io.set_value("model.screening", {
+        "dataset": "QM9 (the model's own chemical space)",
+        "model_used": best,
+        "target_gap_eV": target_gap,
+        "ranking": "dye-filter passers, unique SMILES, sorted by |predicted gap - target|",
+        "unique_filter_passers_ranked": len(ranked),
+        "closest_predicted_gap_eV": float(ranked["predicted_gap_eV"].iloc[0]),
+        "closest_distance_from_target_eV": float(ranked["distance_from_target_eV"].iloc[0]),
+        "top_candidates_in_training_set": int((top["split"] == "train").sum()),
+        "funnel": funnel,
+        "dft_check": {
+            "protocol": "ETKDG -> MMFF94 -> B3LYP/6-31G* optimisation -> single point (as Part 2)",
+            "mean_absolute_error_predicted_vs_b3lyp_eV": float(np.mean(np.abs(errors))),
+            "signed_errors_predicted_minus_b3lyp_eV": errors,
+            "mean_absolute_difference_qm9_label_vs_our_b3lyp_eV": float(np.mean(
+                [abs(record["qm9_gap_eV"] - record["b3lyp_6_31Gs_gap_eV"]) for record in verified])),
+            "total_wall_seconds": float(sum(record["b3lyp_wall_seconds"] for record in verified)),
+        },
+    })
+
+    # --- out-of-domain test on HOPV15 --------------------------------------------------------
+    # The model was trained on molecules with at most 9 heavy atoms; HOPV15 molecules are far larger.
+    has_dft = hopv["b3lyp_gap_eV"].notna().to_numpy()
+    hopv_reference = hopv["b3lyp_gap_eV"].to_numpy()[has_dft]
+    hopv_predictions = {kind: model.predict(bundle, kind, hopv_table)[has_dft] for kind in model.MODEL_ORDER}
+    results_io.set_value("model.out_of_domain_hopv", {
+        "reference": "HOPV15 B3LYP HOMO-LUMO gap, averaged over conformers",
+        "molecules": int(has_dft.sum()),
+        "heavy_atoms_range": [int(hopv["n_heavy_atoms"].min()), int(hopv["n_heavy_atoms"].max())],
+        "reference_gap_range_eV": [float(hopv_reference.min()), float(hopv_reference.max())],
+        "metrics": {kind: model.regression_metrics(hopv_reference, values)
+                    for kind, values in hopv_predictions.items()},
+        "predicted_gap_range_eV": {kind: [float(values.min()), float(values.max())]
+                                   for kind, values in hopv_predictions.items()},
+        "qm9_training_gap_min_eV": float(gaps[split["train"]].min()),
+    })
+
+    # --- checks ------------------------------------------------------------------------------
+    all_rows = np.concatenate(list(split.values()))
+    results_io.record_check("train/validation/test split is disjoint and covers every QM9 row", len(qm9_table),
+                            int(len(np.unique(all_rows))),
+                            len(np.unique(all_rows)) == len(all_rows) == len(qm9_table))
+    standardised = bundle["standardiser"].transform(
+        qm9_table[DESCRIPTOR_NAMES].to_numpy(dtype=float)[split["train"]])
+    worst = float(max(np.abs(standardised.mean(axis=0)).max(),
+                      np.abs(standardised.std(axis=0, ddof=0) - 1).max()))
+    results_io.record_check("standardised training features have mean 0 and std 1 (ddof=0)", "< 1e-9",
+                            worst, worst < 1e-9)
+    test_mae = {kind: bundle["models"][kind]["metrics"]["test"]["MAE_eV"] for kind in model.MODEL_ORDER}
+    results_io.record_check("both tree models beat the ridge baseline on test MAE", "trees < ridge",
+                            {kind: round(value, 4) for kind, value in test_mae.items()},
+                            max(test_mae["random_forest"], test_mae["gradient_boosting"]) < test_mae["ridge"])
+    results_io.record_check("every top candidate passes the dye-likeness filter", N_TOP_CANDIDATES,
+                            int(top["passes_dye_filter"].sum()), bool(top["passes_dye_filter"].all()))
+    results_io.record_check("top 3 candidates have a real B3LYP gap", N_DFT_VERIFIED,
+                            sum(record["b3lyp_6_31Gs_gap_eV"] is not None for record in verified),
+                            all(record["b3lyp_6_31Gs_gap_eV"] is not None for record in verified))
+
+    figures.fig11_parity(bundle, qm9_table, gaps, model, best, hopv_reference, hopv_predictions[best], verified)
+    figures.fig12_feature_importance(bundle, DESCRIPTOR_LABELS, model.MODEL_ORDER, model.MODEL_LABELS, best)
+    figures.fig13_screening_funnel(funnel)
+    return bundle, candidates

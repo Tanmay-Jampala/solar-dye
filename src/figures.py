@@ -18,6 +18,7 @@ import matplotlib
 
 matplotlib.use("Agg")  # render to files; no window needed
 import matplotlib.pyplot as plt
+import matplotlib.ticker
 import numpy as np
 
 from src.constants import FIGURES_DIR, HC_EV_NM
@@ -508,3 +509,218 @@ def fig07_torsion_gap(points, summary):
     gap_axis.set_xticks(range(0, 181, 30))
     gap_axis.set_xlim(-5, 185)
     return save_figure(figure, "fig07_torsion_gap")
+
+
+# ---------------------------------------------------------------------------
+# Part 4 -- descriptors (fig09 distributions, fig10 correlations)
+# ---------------------------------------------------------------------------
+
+def _panel_letter(axis, letter):
+    """Bold panel letter in the top-left corner, outside the plot area."""
+    axis.text(-0.02, 1.03, letter, transform=axis.transAxes, fontsize=16, fontweight="bold")
+
+
+def fig09_descriptor_distributions(table, gaps, labels):
+    """Histogram of every descriptor (and the gap) over the cleaned QM9 set, one small panel each."""
+    apply_style()
+    names = list(labels)
+    columns = 4
+    rows = int(np.ceil((len(names) + 1) / columns))
+    figure, axes = plt.subplots(rows, columns, figsize=(16, 3.3 * rows))
+    axes = axes.ravel()
+    series = [(labels[name], table[name].to_numpy(dtype=float), BLUE) for name in names]
+    series.append(("HOMO–LUMO gap (eV)", np.asarray(gaps, dtype=float), AQUA))
+    for axis, (label, values, colour) in zip(axes, series):
+        integer_valued = np.allclose(values, np.round(values)) and values.max() - values.min() <= 40
+        if integer_valued:
+            bins = np.arange(values.min() - 0.5, values.max() + 1.5, 1.0)
+        else:
+            bins = 50
+        axis.set_axisbelow(True)
+        axis.hist(values, bins=bins, color=colour, edgecolor="white", linewidth=0.4)
+        axis.set_xlabel(label, fontsize=12)
+        axis.grid(axis="x", visible=False)
+        axis.tick_params(labelsize=11)
+        axis.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(
+            lambda value, _: f"{value / 1000:.0f}k" if value >= 1000 else f"{value:.0f}"))
+    for axis in axes[len(series):]:
+        axis.set_visible(False)
+    for axis in axes[::columns]:
+        axis.set_ylabel("Molecules", fontsize=12)
+    figure.tight_layout()
+    return save_figure(figure, "fig09_descriptor_distributions")
+
+
+def diverging_colourmap():
+    """Blue (negative) -> warm grey (zero) -> orange (positive): two hues and a neutral midpoint."""
+    from matplotlib.colors import LinearSegmentedColormap
+    return LinearSegmentedColormap.from_list("blue_grey_orange", [BLUE, "#f1f0ec", ORANGE])
+
+
+def fig10_correlation_heatmap(table, gaps, labels):
+    """Pearson correlation between every pair of descriptors and the gap (gap is the last row/column)."""
+    apply_style()
+    names = list(labels)
+    frame = table[names].astype(float).copy()
+    frame["gap"] = np.asarray(gaps, dtype=float)
+    matrix = frame.corr(method="pearson").to_numpy()
+    tick_labels = [labels[name].split(" (")[0] for name in names] + ["HOMO–LUMO gap"]
+
+    figure, axis = plt.subplots(figsize=(11.5, 9.5))
+    axis.grid(False)
+    image = axis.imshow(matrix, cmap=diverging_colourmap(), vmin=-1, vmax=1)
+    size = len(tick_labels)
+    for row in range(size):
+        for column in range(size):
+            value = matrix[row, column]
+            axis.text(column, row, f"{value:.2f}", ha="center", va="center", fontsize=10,
+                      color="white" if abs(value) > 0.6 else TEXT_PRIMARY)
+    axis.set_xticks(range(size))
+    axis.set_yticks(range(size))
+    axis.set_xticklabels(tick_labels, rotation=40, ha="right")
+    axis.set_yticklabels(tick_labels)
+    # Outline the gap row, which is what Part 5 tries to predict.
+    axis.add_patch(plt.Rectangle((-0.5, size - 1.5), size, 1, fill=False, edgecolor=TEXT_PRIMARY, linewidth=1.8))
+    for spine in axis.spines.values():
+        spine.set_visible(False)
+    colourbar = figure.colorbar(image, ax=axis, fraction=0.04, pad=0.02)
+    colourbar.set_label("Pearson correlation")
+    colourbar.outline.set_visible(False)
+    figure.tight_layout()
+    return save_figure(figure, "fig10_correlation_heatmap")
+
+
+# ---------------------------------------------------------------------------
+# Part 5 -- the ML surrogate (fig11 parity, fig12 importance, fig13 funnel)
+# ---------------------------------------------------------------------------
+
+# The three models keep these colours wherever they appear (distinct from the method colours).
+MODEL_COLOURS = {"ridge": YELLOW, "random_forest": GREEN, "gradient_boosting": MAGENTA}
+
+
+def fig12_feature_importance(bundle, labels, model_order, model_labels, best):
+    """
+    (a) Ridge coefficients on standardised descriptors: eV of gap per one standard deviation.
+    (b) Permutation importance of each descriptor for all three models (test-set MAE increase).
+    """
+    apply_style()
+    names = list(labels)
+    short = {name: labels[name].split(" (")[0] for name in names}
+    order = sorted(names, key=lambda name: bundle["models"][best]["permutation_importance_eV"][name])
+    positions = np.arange(len(order))
+
+    figure, (coefficient_axis, importance_axis) = plt.subplots(
+        1, 2, figsize=(15, 6.8), sharey=True, gridspec_kw={"width_ratios": [1, 1.35], "wspace": 0.08})
+    coefficients = [bundle["ridge_coefficients_eV_per_std"][name] for name in order]
+    coefficient_axis.set_axisbelow(True)
+    coefficient_axis.barh(positions, coefficients, color=MODEL_COLOURS["ridge"], height=0.6)
+    coefficient_axis.axvline(0, color=TEXT_SECONDARY, linewidth=1)
+    coefficient_axis.set_yticks(positions)
+    coefficient_axis.set_yticklabels([short[name] for name in order])
+    coefficient_axis.set_xlabel("Ridge coefficient\n(eV per standard deviation)")
+    coefficient_axis.grid(axis="y", visible=False)
+    _panel_letter(coefficient_axis, "a")
+
+    height = 0.26
+    importance_axis.set_axisbelow(True)
+    for offset, kind in zip((height, 0.0, -height), model_order):
+        values = [bundle["models"][kind]["permutation_importance_eV"][name] for name in order]
+        importance_axis.barh(positions + offset, values, height=height * 0.92, color=MODEL_COLOURS[kind],
+                             label=model_labels[kind])
+    importance_axis.set_xlabel("Permutation importance\n(increase in test MAE, eV)")
+    importance_axis.grid(axis="y", visible=False)
+    importance_axis.set_xlim(left=0)
+    handles, legend_labels = importance_axis.get_legend_handles_labels()
+    importance_axis.legend(handles, legend_labels, loc="lower right")
+    _panel_letter(importance_axis, "b")
+    return save_figure(figure, "fig12_feature_importance")
+
+
+def sequential_colourmap():
+    """Single-hue sequential map (light to dark blue) for point density."""
+    from matplotlib.colors import LinearSegmentedColormap
+    return LinearSegmentedColormap.from_list("blues", ["#dbe8f8", BLUE, "#0c3466"])
+
+
+def _parity_axes(axis, reference, predicted, low, high):
+    """y = x line, equal aspect and shared limits for a parity panel."""
+    axis.plot([low, high], [low, high], color=TEXT_SECONDARY, linewidth=1.2, linestyle="--", zorder=1)
+    axis.set_xlim(low, high)
+    axis.set_ylim(low, high)
+    axis.set_aspect("equal")
+
+
+def _metric_label(axis, text, corner="upper left"):
+    """Metrics annotation in one corner of a parity panel."""
+    x, y, va, ha = (0.04, 0.96, "top", "left") if corner == "upper left" else (0.96, 0.04, "bottom", "right")
+    axis.text(x, y, text, transform=axis.transAxes, va=va, ha=ha, fontsize=12, color=TEXT_PRIMARY,
+              bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.85, "pad": 2})
+
+
+def fig11_parity(bundle, table, gaps, model_module, best, hopv_reference, hopv_predicted, verified):
+    """
+    Parity plots: predicted vs DFT gap.
+    (a-c) Each model on the held-out QM9 test set (point density, log colour scale), with the
+          three DFT-verified screening candidates on the best model's panel.
+    (d)   The best model on HOPV15, molecules far larger than anything it was trained on.
+    """
+    apply_style()
+    test_rows = bundle["split"]["test"]
+    reference = np.asarray(gaps)[test_rows]
+    low, high = 0.0, 14.0
+    figure, axes = plt.subplots(1, 4, figsize=(21, 5.9))
+    for letter, axis, kind in zip("abc", axes, model_module.MODEL_ORDER):
+        predicted = model_module.predict(bundle, kind, table.iloc[test_rows])
+        axis.grid(False)
+        axis.hexbin(reference, predicted, gridsize=70, extent=(low, high, low, high), bins="log", mincnt=1,
+                    cmap=sequential_colourmap(), linewidths=0, zorder=2)
+        _parity_axes(axis, reference, predicted, low, high)
+        metrics = bundle["models"][kind]["metrics"]["test"]
+        _metric_label(axis, f"{model_module.MODEL_LABELS[kind]}\nMAE {metrics['MAE_eV']:.2f} eV\n"
+                            f"R² {metrics['R2']:.3f}")
+        axis.set_xlabel("QM9 B3LYP gap (eV)")
+        _panel_letter(axis, letter)
+        if kind == best:
+            axis.plot([record["b3lyp_6_31Gs_gap_eV"] for record in verified],
+                      [record["predicted_gap_eV"] for record in verified], "*", markersize=17, color=ORANGE,
+                      markeredgecolor=TEXT_PRIMARY, markeredgewidth=0.8, zorder=4,
+                      label="top-3 candidates\n(vs our B3LYP/6-31G*)")
+            axis.legend(loc="lower right", fontsize=11)
+    axes[0].set_ylabel("Predicted gap (eV)")
+
+    hopv_axis = axes[3]
+    hopv_axis.set_axisbelow(True)
+    hopv_axis.plot(hopv_reference, hopv_predicted, "o", markersize=6, color=MODEL_COLOURS[best], alpha=0.75,
+                   markeredgecolor="white", markeredgewidth=0.6, zorder=2)
+    _parity_axes(hopv_axis, hopv_reference, hopv_predicted, 0.0, 8.0)
+    mae = float(np.mean(np.abs(hopv_predicted - hopv_reference)))
+    _metric_label(hopv_axis, f"HOPV15, out of domain\n{model_module.MODEL_LABELS[best]}\nMAE {mae:.2f} eV",
+                  corner="lower right")
+    hopv_axis.set_xlabel("HOPV15 B3LYP gap (eV)")
+    _panel_letter(hopv_axis, "d")
+    figure.tight_layout()
+    return save_figure(figure, "fig11_parity")
+
+
+def fig13_screening_funnel(funnel):
+    """The screening funnel as horizontal bars on a log scale, widest stage at the top."""
+    apply_style()
+    stages = [stage["stage"] for stage in funnel]
+    counts = [stage["count"] for stage in funnel]
+    positions = np.arange(len(stages))
+    figure, axis = plt.subplots(figsize=(11, 5.2))
+    axis.set_axisbelow(True)
+    colours = BLUE
+    axis.barh(positions, counts, height=0.62, color=colours)
+    for position, count in zip(positions, counts):
+        axis.text(count * 1.15, position, f"{count:,}", va="center", fontsize=13, color=TEXT_PRIMARY)
+    axis.set_xscale("log")
+    axis.set_xlim(1, max(counts) * 6)
+    axis.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda value, _: f"{value:,.0f}"))
+    axis.set_yticks(positions)
+    axis.set_yticklabels(stages)
+    axis.invert_yaxis()
+    axis.grid(axis="y", visible=False)
+    axis.set_xlabel("Molecules (log scale)")
+    figure.tight_layout()
+    return save_figure(figure, "fig13_screening_funnel")

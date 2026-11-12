@@ -344,12 +344,15 @@ def load_cached(name, method, smiles):
 # The full calculation for one molecule and one method
 # ---------------------------------------------------------------------------
 
-def run_molecule(name, method, verbose=True):
+def run_molecule(name, method, verbose=True, spec=None):
     """
     Run (or load from cache) the full MMFF94 -> PySCF optimisation -> single point
-    protocol for one molecule from MOLECULES and one method ('HF' or 'B3LYP').
+    protocol for one molecule and one method ('HF' or 'B3LYP').
+
+    `spec` defaults to MOLECULES[name]; the Part 5 screening candidates pass their
+    own (see `candidate_spec`), with no key bond or dihedral to report.
     """
-    spec = MOLECULES[name]
+    spec = spec if spec is not None else MOLECULES[name]
     smiles = spec["smiles"]
     cached = load_cached(name, method, smiles)
     if cached is not None:
@@ -364,7 +367,8 @@ def run_molecule(name, method, verbose=True):
 
     # Molecular mechanics.
     rdkit_molecule, mmff_info = embed_and_mmff(smiles)
-    mmff_bond = measure_bond(rdkit_molecule, spec["key_bond"][1])
+    key_bond_smarts = spec["key_bond"][1] if spec["key_bond"] else None
+    mmff_bond = measure_bond(rdkit_molecule, key_bond_smarts) if key_bond_smarts else None
     dihedral_smarts = spec["key_dihedral"][1] if spec["key_dihedral"] else None
     mmff_dihedrals = break_planar_symmetry(rdkit_molecule, dihedral_smarts)
     mmff_bonds_all = heavy_atom_bond_lengths(rdkit_molecule)
@@ -398,8 +402,8 @@ def run_molecule(name, method, verbose=True):
         "homo_eV": orbitals["homo_eV"],
         "lumo_eV": orbitals["lumo_eV"],
         "gap_eV": orbitals["gap_eV"],
-        "key_bond_name": spec["key_bond"][0],
-        "key_bond_A": measure_bond(optimised_rdkit, spec["key_bond"][1]),
+        "key_bond_name": spec["key_bond"][0] if spec["key_bond"] else None,
+        "key_bond_A": measure_bond(optimised_rdkit, key_bond_smarts) if key_bond_smarts else None,
         "key_bond_mmff94_A": mmff_bond,
         "key_dihedral_name": spec["key_dihedral"][0] if spec["key_dihedral"] else None,
         "key_dihedrals_deg": measure_dihedrals(optimised_rdkit, dihedral_smarts),
@@ -418,6 +422,19 @@ def run_molecule(name, method, verbose=True):
         print(f"{name} {method}: gap {orbitals['gap_eV']:.3f} eV, {result['wall_seconds']:.0f} s, "
               f"{n_steps} steps", flush=True)
     return result
+
+
+def candidate_name(smiles):
+    """Stable cache name for a screening candidate (a hash of its SMILES, so re-ranking reuses the cache)."""
+    return "candidate_" + hashlib.sha256(smiles.encode()).hexdigest()[:8]
+
+
+def candidate_spec(smiles):
+    """A MOLECULES-style spec for a screening candidate: just the SMILES, nothing extra to measure."""
+    from rdkit.Chem import rdMolDescriptors
+    rings = rdMolDescriptors.CalcNumRings(Chem.MolFromSmiles(smiles))
+    return {"smiles": smiles, "group": "screening candidate", "rings": rings,
+            "key_bond": None, "key_dihedral": None}
 
 
 # ---------------------------------------------------------------------------

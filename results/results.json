@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-11T21:29:41+00:00",
-  "git_commit": "uncommitted",
+  "generated_at": "2026-11-12T02:42:44+00:00",
+  "git_commit": "f320d0e5485e4cd3f0e25940d9adf8fdf52682ce",
   "environment": {
     "python": "3.11.18",
     "platform": "Windows-10-10.0.26300-SP0",
@@ -298,6 +298,92 @@
       "name": "Part 2 free-optimised bithiophene dihedral within 15 deg of the scan minimum",
       "expected": 160.0,
       "actual": 159.1,
+      "passed": true
+    },
+    {
+      "name": "hand-written conjugation proxy matches hand-counted examples",
+      "expected": {
+        "CC": 0,
+        "C=C": 2,
+        "C=CC=C": 4,
+        "c1ccccc1": 6,
+        "Nc1ccccc1": 7,
+        "c1ccc(-c2ccccc2)cc1": 12,
+        "C=CCC=C": 2
+      },
+      "actual": {
+        "CC": 0,
+        "C=C": 2,
+        "C=CC=C": 4,
+        "c1ccccc1": 6,
+        "Nc1ccccc1": 7,
+        "c1ccc(-c2ccccc2)cc1": 12,
+        "C=CCC=C": 2
+      },
+      "passed": true
+    },
+    {
+      "name": "descriptors computed for every cleaned QM9 and HOPV15 molecule",
+      "expected": [
+        130831,
+        350
+      ],
+      "actual": [
+        130831,
+        350
+      ],
+      "passed": true
+    },
+    {
+      "name": "larger conjugated system correlates with a smaller gap (Pearson r < 0)",
+      "expected": "< 0",
+      "actual": -0.721,
+      "passed": true
+    },
+    {
+      "name": "dye filter accepts 4-nitroaniline and rejects benzene",
+      "expected": [
+        true,
+        false
+      ],
+      "actual": [
+        true,
+        false
+      ],
+      "passed": true
+    },
+    {
+      "name": "train/validation/test split is disjoint and covers every QM9 row",
+      "expected": 130831,
+      "actual": 130831,
+      "passed": true
+    },
+    {
+      "name": "standardised training features have mean 0 and std 1 (ddof=0)",
+      "expected": "< 1e-9",
+      "actual": 1.401897108248556e-12,
+      "passed": true
+    },
+    {
+      "name": "both tree models beat the ridge baseline on test MAE",
+      "expected": "trees < ridge",
+      "actual": {
+        "ridge": 0.6032,
+        "random_forest": 0.228,
+        "gradient_boosting": 0.2259
+      },
+      "passed": true
+    },
+    {
+      "name": "every top candidate passes the dye-likeness filter",
+      "expected": 10,
+      "actual": 10,
+      "passed": true
+    },
+    {
+      "name": "top 3 candidates have a real B3LYP gap",
+      "expected": 3,
+      "actual": 3,
       "passed": true
     },
     {
@@ -3279,6 +3365,761 @@
       "b3lyp_overestimates_for_all_with_data": true,
       "b3lyp_error_shrinks_with_conjugation": true,
       "note": "Predicted: B3LYP underestimates the optical gap. Observed: for these short oligomers the B3LYP HOMO-LUMO gap is ABOVE the experimental optical gap, and the excess shrinks as the chain grows. The HOMO-LUMO gap is not the optical gap: it ignores the electron-hole attraction (exciton binding) and B3LYP's self-interaction error, which pull in opposite directions; their balance depends on size."
+    }
+  },
+  "descriptors": {
+    "names": [
+      "molecular_weight",
+      "logp",
+      "h_bond_donors",
+      "h_bond_acceptors",
+      "tpsa",
+      "rotatable_bonds",
+      "ring_count",
+      "aromatic_ring_count",
+      "fraction_sp3",
+      "bertz_complexity",
+      "largest_conjugated_system"
+    ],
+    "labels": {
+      "molecular_weight": "Molecular weight (g/mol)",
+      "logp": "LogP (Crippen)",
+      "h_bond_donors": "H-bond donors",
+      "h_bond_acceptors": "H-bond acceptors",
+      "tpsa": "TPSA (\u00c5\u00b2)",
+      "rotatable_bonds": "Rotatable bonds",
+      "ring_count": "Rings",
+      "aromatic_ring_count": "Aromatic rings",
+      "fraction_sp3": "Fraction sp\u00b3 carbons",
+      "bertz_complexity": "Bertz complexity",
+      "largest_conjugated_system": "Largest conjugated system (atoms)"
+    },
+    "conjugation_proxy_definition": "Number of heavy atoms in the largest connected conjugated (pi) system.\n\n    Written from the bond orders and aromaticity flags rather than RDKit's own\n    conjugation perception, so every step can be explained:\n\n      1. Mark every atom that takes part in pi bonding: aromatic atoms and atoms\n         with a double or triple bond (`is_pi_atom`), plus N/O/S atoms whose lone\n         pair sits next to such an atom (`is_lone_pair_donor`).\n      2. Two marked atoms are in the same conjugated system if they are bonded.\n         Any bond between two marked atoms counts: a double/aromatic bond is part\n         of the pi system itself, and a single bond between two pi atoms is what\n         joins them (as in butadiene, C=C-C=C, or biphenyl).\n      3. Group the marked atoms into connected pieces (a union-find, below) and\n         return the size of the biggest piece.\n\n    Examples: ethene 2, butadiene 4, benzene 6, aniline 7 (ring + N),\n    biphenyl 12, a saturated molecule 0. Larger means a longer path for\n    delocalised electrons, which (particle in a box) should mean a smaller gap.\n\n    Known simplifications: geometry is ignored (a twisted biphenyl still counts as\n    12), cross-conjugation counts the same as linear conjugation, and a lone-pair\n    atom between two pi systems joins them.",
+    "lipinski_rules": {
+      "molecular_weight": "<= 500.0",
+      "logp": "<= 5.0",
+      "h_bond_donors": "<= 5",
+      "h_bond_acceptors": "<= 10"
+    },
+    "lipinski_max_violations": 1,
+    "lipinski_pass_rate": 1.0,
+    "dye_filter_pass_rate": 0.10002980944883093,
+    "dye_filter_status": "our own construction by analogy with Lipinski; not a literature standard",
+    "dye_filter_rules": {
+      "extended_conjugation": "largest conjugated system >= 6 heavy atoms (at least a benzene ring's worth)",
+      "planarity_capable": "at least half the heavy atoms are in that conjugated system; single bonds between conjugated rings are allowed (Part 3: flattening one costs < kT)",
+      "donor_and_acceptor": "contains at least one electron-donor group AND one electron-acceptor group",
+      "thermal_stability_proxy": "no 3- or 4-membered rings, no O-O, N-N, non-nitro N-O single bonds, no azide",
+      "no_charge_separation": "no formal charges except inside a nitro group (no zwitterions)"
+    },
+    "dye_filter_smarts": {
+      "donors": {
+        "amine on pi system": "[NX3;!$(N=*);!$(N#*);!$(N-[C,S,P]=O);!$([N+])]-[a,$([#6]=*)]",
+        "hydroxyl/ether on pi system": "[OX2;!$(O-[C,S,P]=O)]-[a,$([#6]=*)]",
+        "aromatic N-H (pyrrole type)": "[nH]",
+        "thiophene/furan type ring atom": "[s,o;r5]"
+      },
+      "acceptors": {
+        "carbonyl": "[CX3,c]=[OX1]",
+        "nitrile": "C#N",
+        "nitro": "[N+](=O)[O-]",
+        "imine / azine C=N": "[CX3]=[NX2]",
+        "pyridine-type ring N": "[nX2]"
+      },
+      "unstable": {
+        "peroxide O-O": "[OX2]-[OX2]",
+        "N-N single bond": "[NX3]-[NX3]",
+        "N-O single bond (not nitro)": "[NX3;!$([N+])]-[OX2]",
+        "azide / diazo": "[N]=[N+]=[N-]"
+      }
+    },
+    "qm9": {
+      "molecules": 130831,
+      "lipinski_pass_count": 130831,
+      "lipinski_pass_rate": 1.0,
+      "dye_filter_pass_count": 13087,
+      "dye_filter_pass_rate": 0.10002980944883093,
+      "dye_rule_pass_counts": {
+        "extended_conjugation": 21654,
+        "planarity_capable": 31619,
+        "donor_and_acceptor": 27045,
+        "thermal_stability_proxy": 50339,
+        "no_charge_separation": 130388
+      },
+      "both_filters_pass_count": 13087
+    },
+    "hopv": {
+      "molecules": 350,
+      "lipinski_pass_count": 94,
+      "lipinski_pass_rate": 0.26857142857142857,
+      "dye_filter_pass_count": 303,
+      "dye_filter_pass_rate": 0.8657142857142858,
+      "dye_rule_pass_counts": {
+        "extended_conjugation": 348,
+        "planarity_capable": 345,
+        "donor_and_acceptor": 305,
+        "thermal_stability_proxy": 350,
+        "no_charge_separation": 350
+      },
+      "both_filters_pass_count": 77
+    },
+    "correlations_with_gap": {
+      "molecular_weight": {
+        "pearson": -0.006619127968161519,
+        "spearman": 0.10213690597420634
+      },
+      "logp": {
+        "pearson": 0.30655423856274283,
+        "spearman": 0.2728157734939149
+      },
+      "h_bond_donors": {
+        "pearson": -0.10477512383331133,
+        "spearman": -0.08541395244411246
+      },
+      "h_bond_acceptors": {
+        "pearson": -0.3761917460507482,
+        "spearman": -0.35364485970225734
+      },
+      "tpsa": {
+        "pearson": -0.41335550020009243,
+        "spearman": -0.3917908995642957
+      },
+      "rotatable_bonds": {
+        "pearson": 0.05536109657781009,
+        "spearman": 0.03899564070302648
+      },
+      "ring_count": {
+        "pearson": 0.23867237436490576,
+        "spearman": 0.23703786731100346
+      },
+      "aromatic_ring_count": {
+        "pearson": -0.40250525241737867,
+        "spearman": -0.4106080444605804
+      },
+      "fraction_sp3": {
+        "pearson": 0.7122675009923276,
+        "spearman": 0.7329917878475327
+      },
+      "bertz_complexity": {
+        "pearson": -0.5101698467215616,
+        "spearman": -0.482018805061332
+      },
+      "largest_conjugated_system": {
+        "pearson": -0.7213909122544993,
+        "spearman": -0.7144347486645585
+      }
+    },
+    "summary_statistics": {
+      "molecular_weight": {
+        "mean": 122.72350751733151,
+        "std": 7.571880796019416,
+        "min": 16.043,
+        "max": 152.037
+      },
+      "logp": {
+        "mean": 0.33402631761585555,
+        "std": 0.9582101670607325,
+        "min": -4.835199999999999,
+        "max": 3.7569000000000026
+      },
+      "h_bond_donors": {
+        "mean": 0.8094182571408917,
+        "std": 0.827955663671465,
+        "min": 0.0,
+        "max": 5.0
+      },
+      "h_bond_acceptors": {
+        "mean": 2.178520381255207,
+        "std": 1.0200670861967824,
+        "min": 0.0,
+        "max": 7.0
+      },
+      "tpsa": {
+        "mean": 36.405992616428826,
+        "std": 20.648736977458814,
+        "min": 0.0,
+        "max": 130.12
+      },
+      "rotatable_bonds": {
+        "mean": 0.9183450405484939,
+        "std": 1.0889489362058222,
+        "min": 0.0,
+        "max": 6.0
+      },
+      "ring_count": {
+        "mean": 1.7605536914034137,
+        "std": 1.2238813498034318,
+        "min": 0.0,
+        "max": 9.0
+      },
+      "aromatic_ring_count": {
+        "mean": 0.17585281775725936,
+        "std": 0.39800960698678584,
+        "min": 0.0,
+        "max": 2.0
+      },
+      "fraction_sp3": {
+        "mean": 0.694549296177924,
+        "std": 0.27526134058877877,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "bertz_complexity": {
+        "mean": 160.30204606692254,
+        "std": 47.126758700194834,
+        "min": 0.0,
+        "max": 336.44656417392247
+      },
+      "largest_conjugated_system": {
+        "mean": 2.880288310874334,
+        "std": 2.4395200976233,
+        "min": 0.0,
+        "max": 9.0
+      }
+    }
+  },
+  "model": {
+    "target": "QM9 B3LYP/6-31G(2df,p) HOMO-LUMO gap (eV)",
+    "features": [
+      "molecular_weight",
+      "logp",
+      "h_bond_donors",
+      "h_bond_acceptors",
+      "tpsa",
+      "rotatable_bonds",
+      "ring_count",
+      "aromatic_ring_count",
+      "fraction_sp3",
+      "bertz_complexity",
+      "largest_conjugated_system"
+    ],
+    "split": {
+      "method": "random 80/10/10, seed 42 (justification in src/model.py)",
+      "train": 104665,
+      "validation": 13083,
+      "test": 13083
+    },
+    "standardisation": "z-score, population std (ddof=0), fitted on training rows only",
+    "selection": "hyperparameters chosen by validation MAE; test set used once, for reporting",
+    "best_model": "gradient_boosting",
+    "metrics": {
+      "ridge": {
+        "test": {
+          "MAE_eV": 0.6032257809485981,
+          "RMSE_eV": 0.7502417096514536,
+          "R2": 0.6574568461160049
+        },
+        "validation": {
+          "MAE_eV": 0.5952325193514509,
+          "RMSE_eV": 0.7409071702398256,
+          "R2": 0.6677521559440276
+        },
+        "train": {
+          "MAE_eV": 0.5999935755383633,
+          "RMSE_eV": 0.7462920650833483,
+          "R2": 0.6623266085424595
+        },
+        "hyperparameters": {
+          "alpha": 0.001
+        },
+        "fit_seconds": 0.06586980000429321,
+        "grid_search": [
+          {
+            "params": {
+              "alpha": 0.001
+            },
+            "validation_MAE_eV": 0.5952325193514509,
+            "fit_seconds": 0.06586980000429321
+          },
+          {
+            "params": {
+              "alpha": 0.01
+            },
+            "validation_MAE_eV": 0.5952325199255352,
+            "fit_seconds": 0.022050400002626702
+          },
+          {
+            "params": {
+              "alpha": 0.1
+            },
+            "validation_MAE_eV": 0.595232525666672,
+            "fit_seconds": 0.019323699991218746
+          },
+          {
+            "params": {
+              "alpha": 1.0
+            },
+            "validation_MAE_eV": 0.5952325831075791,
+            "fit_seconds": 0.01943439999013208
+          },
+          {
+            "params": {
+              "alpha": 10.0
+            },
+            "validation_MAE_eV": 0.5952332182748195,
+            "fit_seconds": 0.018621499999426305
+          },
+          {
+            "params": {
+              "alpha": 100.0
+            },
+            "validation_MAE_eV": 0.5952448285204789,
+            "fit_seconds": 0.0206696999957785
+          }
+        ]
+      },
+      "random_forest": {
+        "test": {
+          "MAE_eV": 0.22800431365700824,
+          "RMSE_eV": 0.31428035741528804,
+          "R2": 0.9398899127032272
+        },
+        "validation": {
+          "MAE_eV": 0.22957810265665615,
+          "RMSE_eV": 0.3165841718217481,
+          "R2": 0.9393385242421937
+        },
+        "train": {
+          "MAE_eV": 0.12826939772552606,
+          "RMSE_eV": 0.1816654940427493,
+          "R2": 0.9799910600795582
+        },
+        "hyperparameters": {
+          "min_samples_leaf": 1,
+          "max_features": 0.5
+        },
+        "fit_seconds": 8.349633399993763,
+        "grid_search": [
+          {
+            "params": {
+              "min_samples_leaf": 1,
+              "max_features": 0.5
+            },
+            "validation_MAE_eV": 0.2295781026566561,
+            "fit_seconds": 8.349633399993763
+          },
+          {
+            "params": {
+              "min_samples_leaf": 1,
+              "max_features": 1.0
+            },
+            "validation_MAE_eV": 0.23034937694843646,
+            "fit_seconds": 15.98744829998759
+          },
+          {
+            "params": {
+              "min_samples_leaf": 4,
+              "max_features": 0.5
+            },
+            "validation_MAE_eV": 0.2362260173200903,
+            "fit_seconds": 6.56107019999763
+          },
+          {
+            "params": {
+              "min_samples_leaf": 4,
+              "max_features": 1.0
+            },
+            "validation_MAE_eV": 0.23368033031680105,
+            "fit_seconds": 12.910647500000778
+          }
+        ]
+      },
+      "gradient_boosting": {
+        "test": {
+          "MAE_eV": 0.22589139796726482,
+          "RMSE_eV": 0.308355484173027,
+          "R2": 0.9421349629335445
+        },
+        "validation": {
+          "MAE_eV": 0.22588219871182355,
+          "RMSE_eV": 0.30771210408586,
+          "R2": 0.9426908805298794
+        },
+        "train": {
+          "MAE_eV": 0.17402120716850558,
+          "RMSE_eV": 0.23146260167438382,
+          "R2": 0.9675181428266257
+        },
+        "hyperparameters": {
+          "learning_rate": 0.1,
+          "max_leaf_nodes": 127
+        },
+        "fit_seconds": 8.002223100003903,
+        "grid_search": [
+          {
+            "params": {
+              "learning_rate": 0.05,
+              "max_leaf_nodes": 31
+            },
+            "validation_MAE_eV": 0.2689292265417631,
+            "fit_seconds": 3.4079943999968236
+          },
+          {
+            "params": {
+              "learning_rate": 0.05,
+              "max_leaf_nodes": 127
+            },
+            "validation_MAE_eV": 0.23291148652520083,
+            "fit_seconds": 8.422987800004194
+          },
+          {
+            "params": {
+              "learning_rate": 0.1,
+              "max_leaf_nodes": 31
+            },
+            "validation_MAE_eV": 0.24970098769567498,
+            "fit_seconds": 3.0177865000005113
+          },
+          {
+            "params": {
+              "learning_rate": 0.1,
+              "max_leaf_nodes": 127
+            },
+            "validation_MAE_eV": 0.22588219871182355,
+            "fit_seconds": 8.002223100003903
+          }
+        ]
+      }
+    },
+    "feature_importance": {
+      "ridge": {
+        "permutation_importance_test_MAE_increase_eV": {
+          "molecular_weight": 0.0005740976246670915,
+          "logp": 0.09517184762874467,
+          "h_bond_donors": 0.008394584542746308,
+          "h_bond_acceptors": 0.025997976907664876,
+          "tpsa": 0.09888455174823416,
+          "rotatable_bonds": 0.013739811323183138,
+          "ring_count": 0.0014536304705968562,
+          "aromatic_ring_count": 0.17661733650558922,
+          "fraction_sp3": 0.18349994391038546,
+          "bertz_complexity": 0.08855627281861544,
+          "largest_conjugated_system": 0.5016136793955617
+        },
+        "permutation_importance_std_eV": {
+          "molecular_weight": 0.00018073830308319857,
+          "logp": 0.0014443051721523574,
+          "h_bond_donors": 0.000548599402313468,
+          "h_bond_acceptors": 0.001126979306461542,
+          "tpsa": 0.0005699703056639917,
+          "rotatable_bonds": 0.0006323310320485747,
+          "ring_count": 0.00011256479691958768,
+          "aromatic_ring_count": 0.0012427790661762802,
+          "fraction_sp3": 0.003634293679233151,
+          "bertz_complexity": 0.0014952812939654384,
+          "largest_conjugated_system": 0.005517285004751505
+        }
+      },
+      "random_forest": {
+        "permutation_importance_test_MAE_increase_eV": {
+          "molecular_weight": 0.12295742124105014,
+          "logp": 0.20846844918729826,
+          "h_bond_donors": 0.03279045937255864,
+          "h_bond_acceptors": 0.06449207310334089,
+          "tpsa": 0.17862162488655453,
+          "rotatable_bonds": 0.022199662639873014,
+          "ring_count": 0.09898458443119425,
+          "aromatic_ring_count": 0.07792213408365282,
+          "fraction_sp3": 0.4423465978460124,
+          "bertz_complexity": 0.11498398356982345,
+          "largest_conjugated_system": 0.5578749118734744
+        },
+        "permutation_importance_std_eV": {
+          "molecular_weight": 0.0015878641674926001,
+          "logp": 0.0018701620680701262,
+          "h_bond_donors": 0.00034539743992602974,
+          "h_bond_acceptors": 0.0005088384118611967,
+          "tpsa": 0.001975490464672967,
+          "rotatable_bonds": 0.00071919313003392,
+          "ring_count": 0.0009335395459610481,
+          "aromatic_ring_count": 0.001086839660518277,
+          "fraction_sp3": 0.0014004964015508234,
+          "bertz_complexity": 0.0017443657473887751,
+          "largest_conjugated_system": 0.0018444325251832639
+        }
+      },
+      "gradient_boosting": {
+        "permutation_importance_test_MAE_increase_eV": {
+          "molecular_weight": 0.1416818936224084,
+          "logp": 0.22661978487868292,
+          "h_bond_donors": 0.05875324187994999,
+          "h_bond_acceptors": 0.09820627900286075,
+          "tpsa": 0.30255345646325293,
+          "rotatable_bonds": 0.027411234469169155,
+          "ring_count": 0.11521277371047316,
+          "aromatic_ring_count": 0.077973557915965,
+          "fraction_sp3": 0.40279054252228014,
+          "bertz_complexity": 0.14346304983061792,
+          "largest_conjugated_system": 0.6717503702300995
+        },
+        "permutation_importance_std_eV": {
+          "molecular_weight": 0.0013926714505690715,
+          "logp": 0.0021501281968542064,
+          "h_bond_donors": 0.0007203299803493652,
+          "h_bond_acceptors": 0.001290641515134735,
+          "tpsa": 0.002567001920066161,
+          "rotatable_bonds": 0.0006595323496639705,
+          "ring_count": 0.0013231288205695407,
+          "aromatic_ring_count": 0.0011685477522552752,
+          "fraction_sp3": 0.0017947667405346659,
+          "bertz_complexity": 0.0018585812318173327,
+          "largest_conjugated_system": 0.003311927223253537
+        }
+      }
+    },
+    "ridge_coefficients_eV_per_std": {
+      "molecular_weight": -0.022714175707021028,
+      "logp": 0.31757614285562236,
+      "h_bond_donors": 0.09913795459288179,
+      "h_bond_acceptors": -0.14727772456756122,
+      "tpsa": 0.33638671280238125,
+      "rotatable_bonds": -0.12928753165149645,
+      "ring_count": 0.02693763478993825,
+      "aromatic_ring_count": 0.44925477159174665,
+      "fraction_sp3": 0.4193140650131616,
+      "bertz_complexity": -0.2916982920467223,
+      "largest_conjugated_system": -0.8062825555427564
+    },
+    "ridge_for_web": {
+      "coefficients_eV_per_std": {
+        "molecular_weight": -0.022714175707021028,
+        "logp": 0.31757614285562236,
+        "h_bond_donors": 0.09913795459288179,
+        "h_bond_acceptors": -0.14727772456756122,
+        "tpsa": 0.33638671280238125,
+        "rotatable_bonds": -0.12928753165149645,
+        "ring_count": 0.02693763478993825,
+        "aromatic_ring_count": 0.44925477159174665,
+        "fraction_sp3": 0.4193140650131616,
+        "bertz_complexity": -0.2916982920467223,
+        "largest_conjugated_system": -0.8062825555427564
+      },
+      "intercept_eV": 6.856069578730714,
+      "feature_mean": {
+        "molecular_weight": 122.74931363874165,
+        "logp": 0.33368403429992055,
+        "h_bond_donors": 0.8091912291597,
+        "h_bond_acceptors": 2.180891415468399,
+        "tpsa": 36.43147384511464,
+        "rotatable_bonds": 0.9193140018153155,
+        "ring_count": 1.7590407490565136,
+        "aromatic_ring_count": 0.17618114938135956,
+        "fraction_sp3": 0.6946756014465967,
+        "bertz_complexity": 160.34736988367206,
+        "largest_conjugated_system": 2.881631873118999
+      },
+      "feature_std_ddof0": {
+        "molecular_weight": 7.523411725081153,
+        "logp": 0.9584510017718787,
+        "h_bond_donors": 0.8285174125650732,
+        "h_bond_acceptors": 1.0197597881932203,
+        "tpsa": 20.625677802369115,
+        "rotatable_bonds": 1.0891192478858212,
+        "ring_count": 1.2211257190391427,
+        "aromatic_ring_count": 0.3983103328407732,
+        "fraction_sp3": 0.2751984379816268,
+        "bertz_complexity": 47.17229583544051,
+        "largest_conjugated_system": 2.439970618956985
+      }
+    },
+    "top_candidates": [
+      {
+        "rank": 1,
+        "smiles": "CCNC(=N)C(=O)C=O",
+        "predicted_gap_eV": 3.0956433152141423,
+        "distance_from_target_eV": 1.7556433152141422,
+        "qm9_gap_eV": 3.028627289178464,
+        "split": "train",
+        "largest_conjugated_system": 7,
+        "b3lyp_6_31Gs_gap_eV": 2.994374485045396,
+        "b3lyp_wall_seconds": 546.2006349000003
+      },
+      {
+        "rank": 2,
+        "smiles": "C(=O)C(=O)C(=N)NC=N",
+        "predicted_gap_eV": 3.311321858477573,
+        "distance_from_target_eV": 1.971321858477573,
+        "qm9_gap_eV": 3.1456362500362127,
+        "split": "train",
+        "largest_conjugated_system": 9,
+        "b3lyp_6_31Gs_gap_eV": 2.9553152022885802,
+        "b3lyp_wall_seconds": 316.9911582999921
+      },
+      {
+        "rank": 3,
+        "smiles": "c1coc2c1C(=O)C=C2",
+        "predicted_gap_eV": 3.55163261498566,
+        "distance_from_target_eV": 2.2116326149856596,
+        "qm9_gap_eV": 3.42319238974529,
+        "split": "train",
+        "largest_conjugated_system": 9,
+        "b3lyp_6_31Gs_gap_eV": 3.383899814470489,
+        "b3lyp_wall_seconds": 225.2635115000012
+      },
+      {
+        "rank": 4,
+        "smiles": "c1coc2c1C=CC2=O",
+        "predicted_gap_eV": 3.55163261498566,
+        "distance_from_target_eV": 2.2116326149856596,
+        "qm9_gap_eV": 3.545643627852236,
+        "split": "train",
+        "largest_conjugated_system": 9,
+        "b3lyp_6_31Gs_gap_eV": null,
+        "b3lyp_wall_seconds": null
+      },
+      {
+        "rank": 5,
+        "smiles": "CCN=C(C(=O)C=O)N",
+        "predicted_gap_eV": 3.586885092447715,
+        "distance_from_target_eV": 2.246885092447715,
+        "qm9_gap_eV": 3.7470078860725473,
+        "split": "train",
+        "largest_conjugated_system": 7,
+        "b3lyp_6_31Gs_gap_eV": null,
+        "b3lyp_wall_seconds": null
+      },
+      {
+        "rank": 6,
+        "smiles": "c1c[nH]c2c1C(=O)C=C2",
+        "predicted_gap_eV": 3.5903434548984237,
+        "distance_from_target_eV": 2.250343454898424,
+        "qm9_gap_eV": 3.420471251120692,
+        "split": "train",
+        "largest_conjugated_system": 9,
+        "b3lyp_6_31Gs_gap_eV": null,
+        "b3lyp_wall_seconds": null
+      },
+      {
+        "rank": 7,
+        "smiles": "c1c[nH]c2c1C=CC2=O",
+        "predicted_gap_eV": 3.5903434548984237,
+        "distance_from_target_eV": 2.250343454898424,
+        "qm9_gap_eV": 3.5048265484832544,
+        "split": "train",
+        "largest_conjugated_system": 9,
+        "b3lyp_6_31Gs_gap_eV": null,
+        "b3lyp_wall_seconds": null
+      },
+      {
+        "rank": 8,
+        "smiles": "C1C(=O)C(=O)C(=N1)N",
+        "predicted_gap_eV": 3.6121750640165446,
+        "distance_from_target_eV": 2.272175064016545,
+        "qm9_gap_eV": 3.2163858542757815,
+        "split": "train",
+        "largest_conjugated_system": 7,
+        "b3lyp_6_31Gs_gap_eV": null,
+        "b3lyp_wall_seconds": null
+      },
+      {
+        "rank": 9,
+        "smiles": "CC1N=C(N)C(=O)C1=O",
+        "predicted_gap_eV": 3.6365724914653295,
+        "distance_from_target_eV": 2.296572491465329,
+        "qm9_gap_eV": 3.183732190780596,
+        "split": "train",
+        "largest_conjugated_system": 7,
+        "b3lyp_6_31Gs_gap_eV": null,
+        "b3lyp_wall_seconds": null
+      },
+      {
+        "rank": 10,
+        "smiles": "CC(=O)C(=O)C(=N)NC",
+        "predicted_gap_eV": 3.6596849456496447,
+        "distance_from_target_eV": 2.3196849456496444,
+        "qm9_gap_eV": 3.2980200130137454,
+        "split": "train",
+        "largest_conjugated_system": 7,
+        "b3lyp_6_31Gs_gap_eV": null,
+        "b3lyp_wall_seconds": null
+      }
+    ],
+    "screening": {
+      "dataset": "QM9 (the model's own chemical space)",
+      "model_used": "gradient_boosting",
+      "target_gap_eV": 1.34,
+      "ranking": "dye-filter passers, unique SMILES, sorted by |predicted gap - target|",
+      "unique_filter_passers_ranked": 13038,
+      "closest_predicted_gap_eV": 3.0956433152141423,
+      "closest_distance_from_target_eV": 1.7556433152141422,
+      "top_candidates_in_training_set": 10,
+      "funnel": [
+        {
+          "stage": "cleaned QM9",
+          "count": 130831
+        },
+        {
+          "stage": "pass dye-likeness filter",
+          "count": 13087
+        },
+        {
+          "stage": "predicted gap < 4.0 eV",
+          "count": 81
+        },
+        {
+          "stage": "top 10, closest to 1.34 eV",
+          "count": 10
+        },
+        {
+          "stage": "verified with B3LYP/6-31G*",
+          "count": 3
+        }
+      ],
+      "dft_check": {
+        "protocol": "ETKDG -> MMFF94 -> B3LYP/6-31G* optimisation -> single point (as Part 2)",
+        "mean_absolute_error_predicted_vs_b3lyp_eV": 0.20833609562430336,
+        "signed_errors_predicted_minus_b3lyp_eV": [
+          0.10126883016874633,
+          0.35600665618899274,
+          0.16773280051517103
+        ],
+        "mean_absolute_difference_qm9_label_vs_our_b3lyp_eV": 0.0879554757185006,
+        "total_wall_seconds": 1088.4553046999936
+      }
+    },
+    "out_of_domain_hopv": {
+      "reference": "HOPV15 B3LYP HOMO-LUMO gap, averaged over conformers",
+      "molecules": 350,
+      "heavy_atoms_range": [
+        6,
+        90
+      ],
+      "reference_gap_range_eV": [
+        1.5102319366523342,
+        5.959293587871372
+      ],
+      "metrics": {
+        "ridge": {
+          "MAE_eV": 12.012489295420167,
+          "RMSE_eV": 13.429556004776142,
+          "R2": -716.2200092773262
+        },
+        "random_forest": {
+          "MAE_eV": 3.0989081926651973,
+          "RMSE_eV": 3.134233755104212,
+          "R2": -38.06536217098932
+        },
+        "gradient_boosting": {
+          "MAE_eV": 3.608971524792728,
+          "RMSE_eV": 3.6570957602818503,
+          "R2": -52.186541713674615
+        }
+      },
+      "predicted_gap_range_eV": {
+        "ridge": [
+          -32.15562782782695,
+          6.875319817488509
+        ],
+        "random_forest": [
+          5.215828970685988,
+          6.6076849821980135
+        ],
+        "gradient_boosting": [
+          5.1585810449836345,
+          7.068663388842389
+        ]
+      },
+      "qm9_training_gap_min_eV": 0.6694001016513048
     }
   }
 }
