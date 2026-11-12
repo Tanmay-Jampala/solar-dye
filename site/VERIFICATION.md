@@ -140,11 +140,18 @@ Uncommitted changes outside `site/` (all dated 14:02–14:04, before any site co
 - **Site scripts only write inside `site/`:** `public/`, `dist/`, `NUMBER_AUDIT.md` and temporary folders. They only read `results/` and `cache/`.
 - **Also untracked:** `PROJECT_STATE_FOR_COWORK.md` and `SOLAR_DYE_WEBSITE_PROMPT.md`.
 
+## Deployment (added 2026-11-13, after the go-ahead)
+
+- **Live at https://tanmay-jampala.github.io/solar-dye/.** It is served by GitHub Pages from the `gh-pages` branch of https://github.com/Tanmay-Jampala/solar-dye. That branch is built by `scripts/publish-pages.mjs` with `SITE_BASE=/solar-dye/`; `og:image` and `og:url` are absolute.
+- **History cleaned before the first push:** the earlier commits' local Windows paths were scrubbed and the General Sans files removed. Every commit uses the GitHub noreply address.
+- **Checks on the live site:** all 60 page views pass, and all honest-negative, secondary-source and predictor checks pass. Lighthouse desktop on the live home page: performance 91; accessibility, best practices and SEO all 100.
+- **Font licence:** the General Sans files are served by the live site (self-hosting for our own website, which the licence allows). They are not in the `main` branch.
+
 ## Known limitations
 
 - **Only Chromium was tested.** Firefox and Safari have not been opened. The code uses widely supported APIs, with fallbacks where Safari lacks one (`requestIdleCallback` falls back to a timer). `DecompressionStream`, used by the lighting loader, needs Safari 16.4 or later; without it the 3D lighting fails, and the scene falls back to the static poster and DOM content.
 - **Lighthouse ran on this laptop** (GTX 1650). On a slower GPU the hero's first-frame shader compile takes longer, and the home-page score will be lower. There is a frame-time fallback for slow devices, which drops the blur and glow. I tested it under 20× CPU throttling, not on real low-end hardware.
-- **`og:image` is a relative URL** (`/og.png`). Most link previews need an absolute URL, so it needs the real site address at deploy time.
+- **`og:image` in a local build is a relative URL.** The published build sets `SITE_URL`, which makes it absolute.
 - **Text drawn inside WebGL canvases is not in the DOM audit.** The laptop screen's funnel counts go through the same `format()`. The sticker labels are names only.
 - **The SMILES box is omitted**, as agreed at the plan stage. It would need RDKit.js matched to the notebook's RDKit, a port of our conjugated-system descriptor and a 50-molecule parity test.
 - **`site/verification/screenshots/` is about 20 MB.** Whether it belongs in the repository is your call when committing; it is not part of the deployed site.
