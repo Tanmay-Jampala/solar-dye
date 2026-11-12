@@ -35,7 +35,14 @@ function write(name, buffer) {
 
 if (!fs.existsSync(path.join(dist, 'index.html'))) throw new Error('render-stills: dist/index.html not found; run astro build first');
 const gpuArgs = process.platform === 'win32' ? ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu'] : ['--ignore-gpu-blocklist'];
-const browser = await chromium.launch({ args: gpuArgs });
+let browser;
+try {
+  browser = await chromium.launch({ args: gpuArgs });
+} catch (err) {
+  // No Playwright Chromium on this machine (npx playwright install chromium): keep the committed stills.
+  console.warn(`render-stills: could not start Chromium (${String(err.message).split('\n')[0]}); keeping the existing poster and og.png`);
+  process.exit(0);
+}
 try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, reducedMotion: 'no-preference' });
   await context.route(`${ORIGIN}/**`, serve);
