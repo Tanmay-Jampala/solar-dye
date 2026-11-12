@@ -96,6 +96,10 @@ Measured timings (and the figures and totals made from them) are re-measured on 
 
 How it was verified (number audit, accessibility, performance) is in [`site/VERIFICATION.md`](site/VERIFICATION.md) and [`site/NUMBER_AUDIT.md`](site/NUMBER_AUDIT.md). Building and publishing it is described in [`site/README.md`](site/README.md).
 
+## Licence
+
+The project's own code, figures and text are released under the [MIT License](LICENSE). Third-party material keeps its own licence: the datasets, the solar spectrum and the fonts listed below.
+
 ## Data, fonts and licences
 
 - **QM9:** Ramakrishnan et al., *Sci. Data* 1, 140022 (2014). CC0. Obtained from the DeepChem/MoleculeNet mirror, together with the authors' list of uncharacterized molecules from figshare.

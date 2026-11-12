@@ -1,6 +1,7 @@
 {
   "name": "solar-dye-site",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Website for Designing a Solar Dye on a Laptop (Gate 6). Reads ../results; never writes there.",
   "scripts": {
