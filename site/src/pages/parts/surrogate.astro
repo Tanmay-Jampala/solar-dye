@@ -1,0 +1,173 @@
+---
+import PartLayout from '../../layouts/PartLayout.astro';
+import Num from '../../components/Num.astro';
+import Count from '../../components/Count.astro';
+import { countWord } from '../../lib/words';
+import Figure from '../../components/Figure.astro';
+import { PARTS } from '../../lib/site';
+import { get } from '../../lib/data';
+
+const part = PARTS[5];
+const kinds = ['ridge', 'random_forest', 'gradient_boosting'] as const;
+const label = { ridge: 'Ridge', random_forest: 'Random forest', gradient_boosting: 'Gradient boosting' };
+const funnel: { stage: string; count: number }[] = get('model.screening.funnel');
+const top: unknown[] = get('model.top_candidates');
+const verified = funnel[funnel.length - 1].count;
+const logMax = Math.log10(funnel[0].count);
+---
+<PartLayout
+  part={part}
+  question="Can a model learn the gap from cheap descriptors, and use it to find a dye in QM9?"
+  description={`Part 5 of Solar Dye: ${countWord('model.metrics')} machine-learning models of the QM9 band gap, a screen for the target gap, and how the models fail on real dyes.`}
+  facts={[
+    { k: 'model.metrics.gradient_boosting.test.MAE_eV', label: 'Best test error (gradient boosting)', u: 'eV' },
+    { k: 'model.screening.closest_predicted_gap_eV', label: 'Closest prediction to the target', u: 'eV' },
+    { k: 'model.out_of_domain_hopv.metrics.gradient_boosting.MAE_eV', label: 'Same model on real dyes', u: 'eV' },
+  ]}
+>
+  <section class="psec wrap cols prose">
+    <div>
+      <h2 class="t-label psec__label">What we did</h2>
+      <p data-reveal><Count k="model.metrics" cap /> regressors learned the QM9 gap from the <Count k="web.feature_order" /> descriptors: Ridge, a random forest and gradient boosting. The split was <Num k="model.split.method" />: <Num k="model.split.train" /> molecules to train, <Num k="model.split.validation" /> to choose settings, <Num k="model.split.test" /> touched once at the end.</p>
+      <p data-reveal>The best model then ranked every dye-filter passer by its distance from the <Num k="model.screening.target_gap_eV" u="eV" /> target, and B3LYP checked the top <Num k={`model.screening.funnel[${funnel.length - 1}].count`} />.</p>
+    </div>
+    <div>
+      <h2 class="t-label psec__label">What we found</h2>
+      <p data-reveal>Gradient boosting is best, at <Num k="model.metrics.gradient_boosting.test.MAE_eV" u="eV" /> mean error on the test set. Its picks hold up under B3LYP: mean error <Num k="model.screening.dft_check.mean_absolute_error_predicted_vs_b3lyp_eV" u="eV" />.</p>
+      <p data-reveal>But the closest prediction is <Num k="model.screening.closest_predicted_gap_eV" u="eV" />, still <Num k="model.screening.closest_distance_from_target_eV" u="eV" /> short of the target.</p>
+    </div>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">The <Count k="model.metrics" /> models</h2>
+    <div class="dtable-wrap" data-fade>
+      <table class="dtable">
+        <caption>Mean absolute error, root-mean-square error and R² on each split. <Num k="model.selection" />.</caption>
+        <thead><tr><th scope="col">Model</th><th scope="col" class="n">Train MAE</th><th scope="col" class="n">Validation MAE</th><th scope="col" class="n">Test MAE <span class="u">(eV)</span></th><th scope="col" class="n">Test RMSE <span class="u">(eV)</span></th><th scope="col" class="n">Test R²</th></tr></thead>
+        <tbody>
+          {kinds.map((k) => (
+            <tr>
+              <th scope="row">{label[k]}</th>
+              <td class="n"><Num k={`model.metrics.${k}.train.MAE_eV`} /></td>
+              <td class="n"><Num k={`model.metrics.${k}.validation.MAE_eV`} /></td>
+              <td class="n"><Num k={`model.metrics.${k}.test.MAE_eV`} /></td>
+              <td class="n"><Num k={`model.metrics.${k}.test.RMSE_eV`} /></td>
+              <td class="n"><Num k={`model.metrics.${k}.test.R2`} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div class="psec cols">
+      <div data-fade><Figure name="fig11_parity" alt={`Predicted against true QM9 gap on the test set for the ${countWord('model.metrics')} models.`} /></div>
+      <div data-fade><Figure name="fig12_feature_importance" alt={`Permutation importance of each descriptor for the ${countWord('model.metrics')} models.`} /></div>
+    </div>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">The funnel</h2>
+    <div class="card" data-fade>
+      {funnel.map((f, i) => (
+        <div class="step">
+          <span class="step__bar" style={`width:${Math.max(4, (Math.log10(f.count) / logMax) * 100).toFixed(1)}%`}></span>
+          <span class="step__n t-mono" data-odo><Num k={`model.screening.funnel[${i}].count`} /></span>
+          <span class="step__label"><Num k={`model.screening.funnel[${i}].stage`} /></span>
+        </div>
+      ))}
+      <p class="note">Bar length on a logarithmic scale. <Num k="model.screening.ranking" />.</p>
+    </div>
+    <div class="psec" data-fade><Figure name="fig13_screening_funnel" alt="The screening funnel from all of QM9 to the B3LYP-verified candidates." /></div>
+  </section>
+
+  <section class="psec wrap honest">
+    <p class="t-label honest__label">Honest negative · QM9 cannot reach the target</p>
+    <h2 class="psec__h"><Num k="model.screening.top_candidates_in_training_set" /> of the top <Num k={`model.screening.funnel[${funnel.length - 2}].count`} /> hits were already in the training set.</h2>
+    <div class="dtable-wrap" data-fade>
+      <table class="dtable">
+        <caption>The verified candidates. Our B3LYP gap uses the 6-31G* basis; QM9's own label uses a larger basis.</caption>
+        <thead><tr><th scope="col">Rank</th><th scope="col">SMILES</th><th scope="col" class="n">Predicted <span class="u">(eV)</span></th><th scope="col" class="n">QM9 <span class="u">(eV)</span></th><th scope="col" class="n">Our B3LYP <span class="u">(eV)</span></th><th scope="col">Split</th></tr></thead>
+        <tbody>
+          {top.slice(0, verified).map((_, i) => (
+            <tr>
+              <td class="n"><Num k={`model.top_candidates[${i}].rank`} /></td>
+              <th scope="row" class="t-mono"><Num k={`model.top_candidates[${i}].smiles`} /></th>
+              <td class="n"><Num k={`model.top_candidates[${i}].predicted_gap_eV`} /></td>
+              <td class="n"><Num k={`model.top_candidates[${i}].qm9_gap_eV`} /></td>
+              <td class="n"><Num k={`model.top_candidates[${i}].b3lyp_6_31Gs_gap_eV`} /></td>
+              <td><Num k={`model.top_candidates[${i}].split`} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="prose-note" data-fade>Among the molecules that pass the dye filter, the model predicts nothing closer to the target than <Num k="model.screening.closest_predicted_gap_eV" u="eV" />, and every top hit is a molecule it was trained on. The screen rediscovered its own training data; it did not find a new dye.</p>
+  </section>
+
+  <section class="psec wrap honest">
+    <p class="t-label honest__label">Honest negative · out of domain</p>
+    <h2 class="psec__h">On real dyes, all <Count k="model.metrics" /> models fail.</h2>
+    <div class="dtable-wrap" data-fade>
+      <table class="dtable">
+        <caption>The same models on the <Num k="model.out_of_domain_hopv.molecules" /> HOPV15 dyes (<Num k="model.out_of_domain_hopv.heavy_atoms_range[0]" /> to <Num k="model.out_of_domain_hopv.heavy_atoms_range[1]" /> heavy atoms), against <Num k="model.out_of_domain_hopv.reference" />.</caption>
+        <thead><tr><th scope="col">Model</th><th scope="col" class="n">MAE <span class="u">(eV)</span></th><th scope="col" class="n">RMSE <span class="u">(eV)</span></th><th scope="col" class="n">R²</th><th scope="col" class="n">Predicted gaps <span class="u">(eV)</span></th></tr></thead>
+        <tbody>
+          {kinds.map((k) => (
+            <tr>
+              <th scope="row">{label[k]}</th>
+              <td class="n is-red"><Num k={`model.out_of_domain_hopv.metrics.${k}.MAE_eV`} /></td>
+              <td class="n"><Num k={`model.out_of_domain_hopv.metrics.${k}.RMSE_eV`} /></td>
+              <td class="n"><Num k={`model.out_of_domain_hopv.metrics.${k}.R2`} /></td>
+              <td class="n"><Num k={`model.out_of_domain_hopv.predicted_gap_range_eV.${k}[0]`} /> to <Num k={`model.out_of_domain_hopv.predicted_gap_range_eV.${k}[1]`} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="prose-note" data-fade>The models learned from molecules with at most <Num k="data.qm9.max_heavy_atoms" /> heavy atoms and were asked about molecules with up to <Num k="model.out_of_domain_hopv.heavy_atoms_range[1]" /> heavy atoms. Ridge, a straight line in descriptor space, extrapolates to band gaps below zero, which cannot exist. Real dyes' reference gaps run from <Num k="model.out_of_domain_hopv.reference_gap_range_eV[0]" u="eV" /> to <Num k="model.out_of_domain_hopv.reference_gap_range_eV[1]" u="eV" />.</p>
+  </section>
+</PartLayout>
+
+<style>
+  .step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 12ch minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--c-line);
+  }
+  .step__bar {
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    background: var(--c-paper);
+    border-radius: 6px;
+    z-index: 0;
+  }
+  .step__n,
+  .step__label {
+    position: relative;
+    z-index: 1;
+  }
+  .step__n {
+    font-size: clamp(22px, 2.6vw, 40px);
+    padding-left: 12px;
+  }
+  .step__label {
+    font-size: 15px;
+  }
+  .step__label :global(.num) {
+    white-space: normal;
+  }
+  .prose-note {
+    margin: 24px 0 0;
+    max-width: 75ch;
+    font-size: 17px;
+    line-height: 1.45;
+  }
+  .prose-note :global(.num) {
+    white-space: normal;
+  }
+</style>

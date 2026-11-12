@@ -1,0 +1,144 @@
+---
+import Num from './Num.astro';
+import Roll from './Roll.astro';
+import { get } from '../lib/data';
+import { url } from '../lib/site';
+
+const checks: { passed: boolean }[] = get('checks');
+const passed = checks.filter((c) => c.passed).length;
+const sources: { file: string; licence: string }[] = get('data.sources');
+const qm9 = sources.findIndex((s) => s.file === 'qm9.csv');
+const hopv = sources.findIndex((s) => /HOPV/i.test(s.file));
+const year = new Date().getFullYear();
+---
+<footer class="ftr wrap">
+  <div class="grid ftr__top">
+    <div class="ftr__col ftr__who">
+      <p>Computational Chemistry 25BSCH01</p>
+      <p>Jain University (FET)</p>
+      <p>Solo project by Tanmay Jampala</p>
+    </div>
+
+    <div class="ftr__col ftr__repro">
+      <p class="t-label ftr__label">Reproduce it</p>
+      <div class="ftr__cmd">
+        <code class="t-mono">./py.sh -m src.reproduce</code>
+        <button class="round ftr__copy" type="button" data-copy="./py.sh -m src.reproduce" aria-label="Copy the reproduce command">→</button>
+      </div>
+      <a class="ftr__badge roll-host" href={url('checks/')}>
+        <span class="ftr__badge-dot" aria-hidden="true"></span>
+        <span><Num k="checks" value={passed} rule="checks_passed" />/<Num k="checks" value={checks.length} rule="checks_total" /> self-checks passed</span>
+      </a>
+    </div>
+
+    <div class="ftr__col ftr__method">
+      <p class="ftr__h">Read the method</p>
+      <a class="pill pill--white roll-host" href={url('checks/')}><span class="pill__dot" aria-hidden="true"></span><Roll text="DATA & LICENCES" /></a>
+    </div>
+  </div>
+
+  <div class="ftr__bottom t-small">
+    <span>© {year}</span>
+    <span>
+      Data: QM9 (<Num k={`data.sources[${qm9}].licence`} />), HOPV15 (<Num k={`data.sources[${hopv}].licence`} />)
+    </span>
+    <span>
+      Python <Num k="environment.python" /> · PySCF <Num k="environment.pyscf" /> · RDKit <Num k="environment.rdkit" /> · scikit-learn <Num k="environment.scikit-learn" />
+    </span>
+    <a class="ftr__top-btn" href="#main" aria-label="Back to top" data-scrollto>↑</a>
+  </div>
+</footer>
+
+<style>
+  .ftr {
+    padding-top: clamp(80px, 10vw, 160px);
+    padding-bottom: var(--pad-y);
+    font-size: 17.5px;
+  }
+  .ftr p {
+    margin: 0;
+  }
+  .ftr__top {
+    row-gap: 48px;
+  }
+  .ftr__who {
+    grid-column: 1 / span 3;
+  }
+  .ftr__repro {
+    grid-column: 5 / span 4;
+    display: grid;
+    gap: 14px;
+    align-content: start;
+  }
+  .ftr__method {
+    grid-column: 9 / span 4;
+    display: grid;
+    gap: 24px;
+    justify-items: start;
+  }
+  .ftr__label {
+    color: var(--c-muted);
+  }
+  .ftr__cmd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--c-white);
+    border-radius: 999px;
+    padding: 4px 4px 4px 18px;
+    font-size: 14px;
+  }
+  .ftr__copy {
+    background: var(--c-black);
+    color: var(--c-white);
+  }
+  .ftr__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .ftr__badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c-blue);
+  }
+  .ftr__h {
+    font-size: clamp(32px, 3vw, 46px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .ftr__bottom {
+    margin-top: clamp(60px, 8vw, 120px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 32px;
+    align-items: center;
+    color: var(--c-muted);
+  }
+  .ftr__top-btn {
+    margin-left: auto;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--c-black);
+    color: var(--c-white);
+    font-size: 18px;
+    transition: transform 0.5s var(--ease-expo);
+  }
+  .ftr__top-btn:hover {
+    transform: translateY(-4px);
+  }
+  @media (max-width: 760px) {
+    .ftr__who,
+    .ftr__repro,
+    .ftr__method {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

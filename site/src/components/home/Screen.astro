@@ -1,0 +1,472 @@
+---
+// "THE SCREEN": the dark chapter. This is the static version (also the no-WebGL and reduced-motion
+// fallback). Milestone 5 turns it into a scroll-scrubbed flythrough over the same text and numbers.
+import Num from '../Num.astro';
+import SecondaryTag from '../SecondaryTag.astro';
+import { get } from '../../lib/data';
+import { formatText } from '../../lib/format';
+
+const funnel: { stage: string; count: number }[] = get('model.screening.funnel');
+const last = funnel.length - 1;
+const target: number = get('model.screening.target_gap_eV');
+const closest: number = get('model.screening.closest_predicted_gap_eV');
+const top: any[] = get('model.top_candidates');
+const verifiedCount: number = funnel[last].count;
+const verified = top.slice(0, verifiedCount);
+
+// Gap ruler: from just below the target to just above the furthest verified prediction (layout only).
+const rMin = Math.floor((target - 0.2) * 2) / 2;
+const rMax = Math.ceil((Math.max(...verified.map((c) => c.predicted_gap_eV)) + 0.3) * 2) / 2;
+const rx = (v: number) => (((v - rMin) / (rMax - rMin)) * 100).toFixed(2) + '%';
+
+// Out-of-domain bars: the frame is scaled to the tree models so ridge visibly breaks out of it.
+const kinds = ['ridge', 'random_forest', 'gradient_boosting'] as const;
+const labels = { ridge: 'Ridge', random_forest: 'Random forest', gradient_boosting: 'Gradient boosting' };
+const mae = Object.fromEntries(kinds.map((k) => [k, get(`model.out_of_domain_hopv.metrics.${k}.MAE_eV`) as number]));
+const frame = Math.max(mae.random_forest, mae.gradient_boosting) * 1.35;
+const barWidth = (v: number) => Math.min((v / frame) * 100, 100).toFixed(2) + '%';
+---
+<section id="screen" class="scr" aria-labelledby="scr-h" data-tone="dark">
+  <div class="scr__gl" data-scr-gl aria-hidden="true"></div>
+  <h2 id="scr-h" class="sr-only">The screen</h2>
+
+  <div class="scr__statement wrap" aria-label={`${formatText(`model.screening.funnel[0].count`, funnel[0].count)} molecules in one laptop screen. ${formatText(`model.screening.funnel[${last}].count`, verifiedCount)} verified by B3LYP.`} data-bound="aria-label" role="text">
+    <p class="scr__jline" aria-hidden="true"><span><Num k="model.screening.funnel[0].count" /></span><span>MOLECULES</span><span>IN</span></p>
+    <p class="scr__jline" aria-hidden="true"><span>ONE</span><span>LAPTOP</span><span>SCREEN</span></p>
+    <p class="scr__jline" aria-hidden="true"><span><Num k={`model.screening.funnel[${last}].count`} /></span><span>VERIFIED</span><span>BY</span><span>B3LYP</span></p>
+  </div>
+
+  <!-- Beat 1: the funnel -->
+  <div class="scr__beat wrap" data-beat="funnel">
+    <p class="t-label scr__kicker">Tunnel one · the funnel</p>
+    <ol class="scr__funnel">
+      {funnel.map((step, i) => (
+        <li data-fade>
+          <span class="scr__big t-mono" data-odo><Num k={`model.screening.funnel[${i}].count`} /></span>
+          <span class="scr__stage"><Num k={`model.screening.funnel[${i}].stage`} /></span>
+        </li>
+      ))}
+    </ol>
+  </div>
+
+  <!-- Beat 2: the honest beat -->
+  <div class="scr__beat wrap" data-beat="honest">
+    <p class="t-label scr__kicker scr__kicker--red">Honest negative</p>
+    <div class="scr__gap" data-gl-gap aria-hidden="true"></div>
+    <div class="ruler" data-fade>
+      <div class="ruler__axis"></div>
+      <div class="ruler__gap" style={`left:${rx(target)};width:calc(${rx(closest)} - ${rx(target)})`}></div>
+      <div class="ruler__target" style={`left:${rx(target)}`}>
+        <span class="ruler__ring" aria-hidden="true"></span>
+        <span class="ruler__label t-mono">target <Num k="model.screening.target_gap_eV" u="eV" /></span>
+      </div>
+      {verified.map((c, i) => (
+        <div class="ruler__hit" style={`left:${rx(c.predicted_gap_eV)}`}>
+          <span class="ruler__dot" aria-hidden="true"></span>
+          {i === 0 && <span class="ruler__label ruler__label--below t-mono">best prediction <Num k="model.screening.closest_predicted_gap_eV" u="eV" /></span>}
+        </div>
+      ))}
+      <p class="ruler__dist t-mono" style={`left:calc((${rx(target)} + ${rx(closest)}) / 2)`}><Num k="model.screening.closest_distance_from_target_eV" u="eV" /> short</p>
+    </div>
+    <p class="scr__caption" data-reveal>
+      QM9 cannot reach the target. <Num k="model.screening.top_candidates_in_training_set" /> of the top <Num k={`model.screening.funnel[${last - 1}].count`} /> hits were already in the training set.
+    </p>
+    <div class="scr__table-wrap" data-fade>
+      <table class="scr__table t-mono">
+        <caption class="sr-only">The verified candidates: predicted gap, QM9's own gap, and our B3LYP check</caption>
+        <thead>
+          <tr><th scope="col">SMILES</th><th scope="col">Predicted <span class="u">(eV)</span></th><th scope="col">QM9 <span class="u">(eV)</span></th><th scope="col">Our B3LYP <span class="u">(eV)</span></th></tr>
+        </thead>
+        <tbody>
+          {verified.map((_, i) => (
+            <tr>
+              <th scope="row"><Num k={`model.top_candidates[${i}].smiles`} /></th>
+              <td><Num k={`model.top_candidates[${i}].predicted_gap_eV`} /></td>
+              <td><Num k={`model.top_candidates[${i}].qm9_gap_eV`} /></td>
+              <td><Num k={`model.top_candidates[${i}].b3lyp_6_31Gs_gap_eV`} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Beat 3: quantum dots -->
+  <div class="scr__beat wrap" data-beat="dots">
+    <p class="t-label scr__kicker">Tunnel two · quantum dots</p>
+    <div class="scr__gap" data-gl-gap aria-hidden="true"></div>
+    <div class="grid scr__dots">
+      <div class="scr__dot-card" data-fade>
+        <p class="t-label">CdSe</p>
+        <p class="scr__dot-big">Cannot reach the target</p>
+        <p class="t-small scr__muted"><Num k="quantum_dots.radius_at_optimum_nm.CdSe.note" /> <SecondaryTag k="quantum_dots.parameters_used.CdSe.status" /></p>
+      </div>
+      <div class="scr__dot-card" data-fade>
+        <p class="t-label">PbS radius at the target</p>
+        <p class="scr__dot-big t-mono"><Num k="quantum_dots.radius_at_optimum_nm.PbS.brus_nm" u="nm" /> <span class="scr__vs">Brus</span></p>
+        <p class="scr__dot-big t-mono"><Num k="quantum_dots.radius_at_optimum_nm.PbS.experimental_sizing_curve_nm" u="nm" /> <span class="scr__vs">experiment</span></p>
+        <p class="scr__red t-mono">Brus is off by <Num k="quantum_dots.radius_at_optimum_nm.PbS.brus_over_experimental_radius" />× <SecondaryTag k="quantum_dots.parameters_used.PbS.status" /></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Beat 4: real dyes -->
+  <div class="scr__beat wrap" data-beat="hopv">
+    <p class="t-label scr__kicker">Shatter · <Num k="quantum_dots.sq_placement.hopv_experimental.count" /> real dyes</p>
+    <div class="scr__gap scr__gap--long" data-gl-gap aria-hidden="true"></div>
+    <div class="scr__pair">
+      <div data-fade>
+        <p class="scr__huge t-mono"><Num k="quantum_dots.sq_placement.hopv_experimental.mean_sq_limit" /></p>
+        <p class="t-label">Mean Shockley–Queisser limit</p>
+      </div>
+      <div data-fade>
+        <p class="scr__huge t-mono scr__huge--dim"><Num k="quantum_dots.sq_placement.hopv_experimental.mean_measured_pce" /></p>
+        <p class="t-label">Mean measured efficiency · best <Num k="quantum_dots.sq_placement.hopv_experimental.best_measured_pce" /></p>
+      </div>
+    </div>
+    <p class="scr__caption" data-reveal>
+      Thermodynamics sets the ceiling. Real dyes, measured in real labs, land far below it: the gap between the two is everything a band gap does not capture.
+    </p>
+  </div>
+
+  <!-- Beat 5: the extrapolation lesson -->
+  <div class="scr__beat wrap" data-beat="ood">
+    <p class="t-label scr__kicker scr__kicker--red">Honest negative · out of domain</p>
+    <p class="scr__lead" data-reveal>
+      The models learned from molecules with at most <Num k="data.qm9.max_heavy_atoms" /> heavy atoms. Asked about real dyes, they fell apart.
+    </p>
+    <div class="bars" data-fade>
+      {kinds.map((k) => (
+        <div class:list={['bars__row', { 'bars__row--break': mae[k] > frame }]}>
+          <span class="bars__name t-label">{labels[k]}</span>
+          <span class="bars__track"><span class="bars__bar" style={`width:${barWidth(mae[k])}`}></span></span>
+          <span class="bars__val t-mono"><Num k={`model.out_of_domain_hopv.metrics.${k}.MAE_eV`} u="eV" /></span>
+        </div>
+      ))}
+      <p class="bars__note t-small">Mean absolute error on HOPV15. The frame is scaled to the tree models; ridge does not fit in it.</p>
+    </div>
+    <p class="scr__caption" data-reveal>
+      Ridge predicted band gaps as low as <Num k="model.out_of_domain_hopv.predicted_gap_range_eV.ridge[0]" u="eV" />. A negative band gap does not exist. The model was wrong here, and that is the lesson.
+    </p>
+  </div>
+</section>
+
+<style>
+  .scr {
+    margin-top: clamp(120px, 14vw, 240px);
+    background: var(--c-black);
+    color: var(--c-white);
+    padding-block: clamp(100px, 12vw, 200px);
+  }
+  .scr p {
+    margin: 0;
+  }
+  .scr__statement {
+    display: grid;
+    gap: 0.1em;
+    font-size: clamp(2.2rem, 7.4vw, 9rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  .scr__jline {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.3em;
+  }
+  .scr__beat {
+    margin-top: clamp(120px, 14vw, 220px);
+  }
+  .scr__kicker {
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 32px !important;
+  }
+  .scr__kicker--red {
+    color: var(--c-red);
+  }
+  .scr__funnel {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 18px;
+  }
+  .scr__funnel li {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: baseline;
+    gap: var(--gap);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 14px;
+  }
+  .scr__big {
+    font-size: clamp(2.6rem, 8vw, 9rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .scr__stage {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .scr__stage :global(.num) {
+    white-space: normal;
+  }
+
+  .ruler {
+    position: relative;
+    height: 180px;
+    margin-bottom: 48px;
+  }
+  .ruler__axis {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .ruler__gap {
+    position: absolute;
+    top: calc(50% - 2px);
+    height: 4px;
+    background: var(--c-red);
+    border-radius: 2px;
+  }
+  .ruler__target,
+  .ruler__hit {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: grid;
+    place-items: center;
+  }
+  .ruler__ring {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid var(--c-white);
+  }
+  .ruler__dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--c-white);
+  }
+  .ruler__label {
+    position: absolute;
+    bottom: calc(100% + 14px);
+    white-space: nowrap;
+    font-size: 14px;
+  }
+  .ruler__label--below {
+    bottom: auto;
+    top: calc(100% + 14px);
+  }
+  .ruler__dist {
+    position: absolute;
+    bottom: calc(50% + 12px);
+    transform: translateX(-50%);
+    color: var(--c-red);
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .scr__caption {
+    font-size: clamp(22px, 2.4vw, 36px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    max-width: 30ch;
+  }
+  .scr__lead {
+    font-size: clamp(20px, 1.8vw, 28px);
+    line-height: 1.25;
+    max-width: 40ch;
+    margin-bottom: 40px !important;
+  }
+  .scr__table-wrap {
+    margin-top: 48px;
+    overflow-x: auto;
+  }
+  .scr__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .scr__table th,
+  .scr__table td {
+    text-align: left;
+    padding: 12px 16px 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    font-weight: 400;
+  }
+  .scr__table thead th {
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    font-size: 12px;
+  }
+  .scr__table thead .u {
+    text-transform: none;
+  }
+
+  .scr__dots {
+    row-gap: 24px;
+  }
+  .scr__dot-card {
+    grid-column: span 6;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius);
+    padding: clamp(20px, 3vw, 40px);
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .scr__dot-big {
+    font-size: clamp(26px, 3vw, 44px);
+    line-height: 1.05;
+  }
+  .scr__vs {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .scr__muted {
+    color: rgba(255, 255, 255, 0.65);
+  }
+  .scr__muted :global(.num) {
+    white-space: normal;
+  }
+  .scr__red {
+    color: var(--c-red);
+    font-size: 16px;
+  }
+
+  .scr__pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--gap);
+    margin-bottom: 48px;
+  }
+  .scr__huge {
+    font-size: clamp(3rem, 10vw, 12rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .scr__huge--dim {
+    color: var(--c-red);
+  }
+
+  .bars {
+    display: grid;
+    gap: 18px;
+    margin-bottom: 48px;
+    max-width: 1000px;
+  }
+  .bars__row {
+    display: grid;
+    grid-template-columns: 18ch 1fr 10ch;
+    align-items: center;
+    gap: 18px;
+  }
+  .bars__track {
+    position: relative;
+    height: 28px;
+    border-right: 1px dashed rgba(255, 255, 255, 0.35);
+  }
+  .bars__bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--c-white);
+    border-radius: 4px;
+  }
+  .bars__row--break .bars__bar {
+    background: var(--c-red);
+    width: calc(100% + 12vw) !important;
+    border-radius: 4px 0 0 4px;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 50%, 100% 100%, 0 100%);
+  }
+  .bars__val {
+    text-align: right;
+  }
+  .bars__row--break .bars__val {
+    color: var(--c-black);
+    position: relative;
+    z-index: 1;
+    padding-right: 26px;
+  }
+  .bars__note {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  /* WebGL mode: a sticky canvas under the beats, and room to scroll through each 3D moment. */
+  .scr__gl {
+    display: none;
+  }
+  :global(html.gl-scr) .scr__gl {
+    display: block;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    margin-bottom: -100vh;
+    z-index: 0;
+    pointer-events: none;
+  }
+  :global(html.gl-scr) .scr__gl :global(canvas) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  :global(html.gl-scr) .scr > :not(.scr__gl) {
+    position: relative;
+    z-index: 1;
+  }
+  :global(html.gl-scr) .scr__statement {
+    min-height: 100vh;
+    align-content: center;
+  }
+  :global(html.gl-scr) .scr__beat {
+    margin-top: 60vh;
+  }
+  :global(html.gl-scr) .scr__funnel {
+    gap: 38vh;
+  }
+  :global(html.gl-scr) .scr__funnel li {
+    border-top-color: rgba(255, 255, 255, 0.3);
+  }
+  :global(html.gl-scr) .scr__gap {
+    height: 110vh;
+  }
+  :global(html.gl-scr) .scr__gap--long {
+    height: 170vh;
+  }
+  :global(html.gl-scr) .scr__table-wrap,
+  :global(html.gl-scr) .scr__dot-card {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(6px);
+  }
+  :global(html.gl-scr) .scr__table-wrap {
+    border-radius: 14px;
+    padding: 8px 20px;
+  }
+
+  @media (max-width: 760px) {
+    .scr__funnel li,
+    .scr__pair {
+      grid-template-columns: 1fr;
+    }
+    .scr__dot-card {
+      grid-column: 1 / -1;
+    }
+    .bars__row {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .bars__row--break .bars__bar {
+      width: calc(100% + 20px) !important;
+    }
+    .bars__val {
+      text-align: left;
+    }
+    .bars__row--break .bars__val {
+      color: var(--c-red);
+      padding-right: 0;
+    }
+  }
+</style>

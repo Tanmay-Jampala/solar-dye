@@ -1,0 +1,16 @@
+---
+// A count written as a word, bound to results.json like <Num>: the length of the array (or object)
+// at `k`, optionally only items whose field matches `where` ("group=push-pull").
+//   <Count k="quantum.molecules" cap />  ->  "Nine"
+// scripts/audit-numbers.mjs recomputes it from data-key / data-where.
+import { countOf, word } from '../lib/words';
+
+interface Props {
+  k: string;
+  where?: string;
+  cap?: boolean;
+}
+const { k, where, cap = false } = Astro.props;
+const n = countOf(k, where);
+---
+<span class="count-word" data-key={k} data-derived="count" data-where={where} data-cap={cap ? '' : undefined}>{word(n, cap)}</span>

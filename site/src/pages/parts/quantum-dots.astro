@@ -1,0 +1,207 @@
+---
+import 'katex/dist/katex.min.css';
+import katex from 'katex';
+import PartLayout from '../../layouts/PartLayout.astro';
+import Num from '../../components/Num.astro';
+import Figure from '../../components/Figure.astro';
+import SecondaryTag from '../../components/SecondaryTag.astro';
+import { PARTS } from '../../lib/site';
+import { get } from '../../lib/data';
+
+const part = PARTS[6];
+const mats = ['CdSe', 'PbS'] as const;
+type Curve = { radius_nm: number[]; gap_eV: number[]; wavelength_nm: number[]; rgb: (number[] | null)[] };
+const brus: Record<string, Curve> = get('quantum_dots.brus_curve');
+const curves = Object.fromEntries(mats.map((m) => [m, { radius_nm: brus[m].radius_nm, gap_eV: brus[m].gap_eV, wavelength_nm: brus[m].wavelength_nm, rgb: brus[m].rgb }]));
+const pbsBrus: number = get('quantum_dots.radius_at_optimum_nm.PbS.brus_nm');
+const start = brus.PbS.radius_nm.reduce((best, r, i, a) => (Math.abs(r - pbsBrus) < Math.abs(a[best] - pbsBrus) ? i : best), 0);
+const last = brus.CdSe.radius_nm.length - 1;
+
+// The Brus equation as stored in quantum_dots.equation, typeset (build time, no client JS).
+const equation = katex.renderToString(
+  String.raw`E(R) = E_{\mathrm{bulk}} + \frac{h^2}{8R^2}\left(\frac{1}{m_e^*} + \frac{1}{m_h^*}\right) - \frac{1.8\,e^2}{4\pi\varepsilon_0\varepsilon_r R}`,
+  { displayMode: true, throwOnError: true, output: 'html' },
+);
+const params = ['bulk_gap_eV', 'electron_effective_mass', 'hole_effective_mass', 'relative_permittivity'];
+const paramLabel: Record<string, string> = { bulk_gap_eV: 'Bulk gap (eV)', electron_effective_mass: 'm_e* (electron mass units)', hole_effective_mass: 'm_h* (electron mass units)', relative_permittivity: 'ε_r' };
+---
+<PartLayout
+  part={part}
+  question="Instead of a molecule, could a tiny crystal be tuned to the target gap just by its size?"
+  description="Part 6 of Solar Dye: the Brus equation for CdSe and PbS quantum dots, the radius that hits the target gap, and how far the simple model is from experiment."
+  facts={[
+    { k: 'quantum_dots.radius_at_optimum_nm.PbS.brus_nm', label: 'PbS radius at the target, Brus', u: 'nm' },
+    { k: 'quantum_dots.radius_at_optimum_nm.PbS.experimental_sizing_curve_nm', label: 'PbS radius at the target, experiment', u: 'nm' },
+    { k: 'quantum_dots.radius_at_optimum_nm.PbS.brus_over_experimental_radius', label: 'Brus overestimates the radius by', u: '×' },
+  ]}
+>
+  <section class="psec wrap cols prose">
+    <div>
+      <h2 class="t-label psec__label">What we did</h2>
+      <p data-reveal>A semiconductor crystal a few nanometres across squeezes its electrons, and the squeeze widens the gap. The Brus equation adds that confinement energy to the bulk gap and subtracts the electron–hole attraction. We solved it for CdSe and PbS from <Num k={`quantum_dots.brus_curve.CdSe.radius_nm[0]`} u="nm" /> to <Num k={`quantum_dots.brus_curve.CdSe.radius_nm[${last}]`} u="nm" /> and compared it with experimental sizing curves.</p>
+    </div>
+    <div>
+      <h2 class="t-label psec__label">What we found</h2>
+      <p data-reveal>PbS can be tuned to the target: Brus says a radius of <Num k="quantum_dots.radius_at_optimum_nm.PbS.brus_nm" u="nm" />. CdSe cannot: its bulk gap is already above the target, and shrinking it only raises the gap.</p>
+    </div>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">The Brus equation</h2>
+    <div class="card eq" data-fade>
+      <div class="eq__tex" data-key="quantum_dots.equation" aria-label="The Brus equation" role="math" set:html={equation}></div>
+      <p class="note">As stored by the pipeline: <span class="t-mono"><Num k="quantum_dots.equation" /></span></p>
+    </div>
+  </section>
+
+  <section class="psec wrap" data-radius data-json={JSON.stringify(curves)}>
+    <h2 class="t-label psec__label">Grow a dot · colours are the stored RGB for each radius</h2>
+    <div class="card card--dark qd">
+      <div class="qd__ctrl">
+        <label class="t-label" for="qd-r">Radius</label>
+        <span class="qd__r t-mono" data-r-radius><Num k={`quantum_dots.brus_curve.CdSe.radius_nm[${start}]`} u="nm" /></span>
+        <input id="qd-r" class="qd__slider" type="range" min="0" max={last} step="1" value={start} data-radius-slider />
+      </div>
+      <div class="qd__mats">
+        {mats.map((m) => (
+          <div class="qd__mat" data-r-mat={m}>
+            <div class="qd__stage"><span class="qd__dot" data-r-dot></span></div>
+            <p class="t-label">{m}</p>
+            <p class="qd__gap t-mono" data-r-gap><Num k={`quantum_dots.brus_curve.${m}.gap_eV[${start}]`} u="eV" /></p>
+            <p class="qd__wl t-mono"><span data-r-wl><Num k={`quantum_dots.brus_curve.${m}.wavelength_nm[${start}]`} u="nm" /></span> · <span data-r-vis>emission colour</span></p>
+          </div>
+        ))}
+      </div>
+      <p class="note qd__note"><Num k="quantum_dots.colour_conversion" /></p>
+    </div>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">Parameters</h2>
+    <div class="dtable-wrap" data-fade>
+      <table class="dtable">
+        <caption>Material parameters used in the Brus equation, with their sources.</caption>
+        <thead><tr><th scope="col">Material</th>{params.map((p) => <th scope="col" class="n">{paramLabel[p]}</th>)}<th scope="col">Source</th></tr></thead>
+        <tbody>
+          {mats.map((m) => (
+            <tr>
+              <th scope="row">{m}</th>
+              {params.map((p) => <td class="n"><Num k={`quantum_dots.parameters_used.${m}.${p}`} /></td>)}
+              <td><Num k={`quantum_dots.parameters_used.${m}.source`} /> <SecondaryTag k={`quantum_dots.parameters_used.${m}.status`} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div class="dtable-wrap psec-sm" data-fade>
+      <table class="dtable">
+        <caption>Experimental sizing curves the Brus results are compared with.</caption>
+        <thead><tr><th scope="col">Material</th><th scope="col">Curve</th><th scope="col">Source</th></tr></thead>
+        <tbody>
+          {mats.map((m) => (
+            <tr><th scope="row">{m}</th><td class="t-mono"><Num k={`quantum_dots.experimental_sizing_curves.${m}.formula`} /></td><td><Num k={`quantum_dots.experimental_sizing_curves.${m}.source`} /></td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="psec wrap honest">
+    <p class="t-label honest__label">Honest negative · two of them</p>
+    <div class="cols prose">
+      <div>
+        <h2 class="psec__h">CdSe cannot reach the target.</h2>
+        <p data-fade><Num k="quantum_dots.radius_at_optimum_nm.CdSe.note" />.</p>
+      </div>
+      <div>
+        <h2 class="psec__h">For PbS, Brus is off by a factor of <Num k="quantum_dots.radius_at_optimum_nm.PbS.brus_over_experimental_radius" />.</h2>
+        <p data-fade>Brus puts the target at a radius of <Num k="quantum_dots.radius_at_optimum_nm.PbS.brus_nm" u="nm" />; the measured sizing curve puts it at <Num k="quantum_dots.radius_at_optimum_nm.PbS.experimental_sizing_curve_nm" u="nm" />, a ratio of <span class="is-red"><Num k="quantum_dots.radius_at_optimum_nm.PbS.brus_over_experimental_radius" />×</span>. The simple effective-mass picture over-confines small, strongly confined PbS dots.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="psec wrap cols">
+    <div data-fade><Figure name="fig14_brus" alt="Band gap against radius from the Brus equation for CdSe and PbS, with the experimental sizing curves." /></div>
+    <div data-fade><Figure name="fig15_unifying" alt="Molecules, real dyes and quantum dots placed on the Shockley–Queisser efficiency curve." /></div>
+  </section>
+</PartLayout>
+
+<style>
+  .eq {
+    display: grid;
+    gap: 12px;
+  }
+  .eq__tex {
+    font-size: clamp(16px, 1.8vw, 26px);
+    overflow-x: auto;
+  }
+  .qd {
+    display: grid;
+    gap: 28px;
+  }
+  .qd__ctrl {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+  }
+  .qd__ctrl label {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .qd__r {
+    font-size: 28px;
+  }
+  .qd__slider {
+    width: 100%;
+    accent-color: var(--c-acid);
+  }
+  .qd__mats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--gap);
+  }
+  .qd__mat p {
+    margin: 0 0 6px;
+  }
+  .qd__stage {
+    height: 140px;
+    display: grid;
+    place-items: center;
+  }
+  .qd__dot {
+    display: block;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    box-shadow: 0 0 40px currentColor;
+    transition: width 0.2s, height 0.2s;
+  }
+  .qd__dot:global(.is-invisible) {
+    border: 1px dashed rgba(255, 255, 255, 0.4);
+    box-shadow: none;
+  }
+  .qd__gap {
+    font-size: clamp(28px, 3vw, 44px);
+  }
+  .qd__wl {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 14px;
+  }
+  .qd__note {
+    color: rgba(255, 255, 255, 0.55);
+  }
+  .psec-sm {
+    margin-top: 24px;
+  }
+  @media (max-width: 760px) {
+    .eq__tex {
+      font-size: 12.5px;
+    }
+    .qd__ctrl {
+      grid-template-columns: auto 1fr;
+    }
+    .qd__slider {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

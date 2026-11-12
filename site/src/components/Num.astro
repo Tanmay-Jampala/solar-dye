@@ -1,0 +1,23 @@
+---
+// A number (or JSON string) bound to results.json. Every number on the site goes through here.
+//   <Num k="sq.optimum_gap_eV" u="eV" />
+//   <Num k="energy.project_total.wall_seconds" derived="hoursFromSeconds" />
+// A value computed in code from results.json (e.g. a count of passed checks) passes `value` and
+// the key it was computed from, plus `rule`, the key pattern whose precision applies.
+import { get } from '../lib/data';
+import { format, type DERIVED } from '../lib/format';
+
+interface Props {
+  k: string;
+  u?: string;
+  derived?: keyof typeof DERIVED;
+  value?: number | string;
+  rule?: string;
+  class?: string;
+}
+const { k, u, derived, value, rule, class: className } = Astro.props;
+const raw = value !== undefined ? value : get(k);
+const f = format(rule ?? k, raw, derived);
+const unit = f.u ?? u;
+---
+<span class:list={['num', className]} data-key={k} data-derived={derived ?? (value !== undefined ? 'computed' : undefined)} data-rule={rule}>{f.n}{unit && <span class="unit">{' '}{unit}</span>}</span>

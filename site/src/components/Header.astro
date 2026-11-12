@@ -1,0 +1,239 @@
+---
+import Roll from './Roll.astro';
+import { NAV, url } from '../lib/site';
+
+interface Props {
+  current: string;
+  back?: boolean;
+}
+const { current, back = false } = Astro.props;
+const predictorHref = current === url('/') ? '#predictor' : `${url('/')}#predictor`;
+---
+<header class="hdr" data-header>
+  <a class="hdr__mark roll-host" href={url('/')} aria-label="Solar Dye, home"><Roll text="SOLAR DYE" /></a>
+
+  {back && (
+    <a class="hdr__back pill roll-host" href={url('/')} data-back><span class="pill__arrow" aria-hidden="true">←</span><Roll text="BACK" /></a>
+  )}
+
+  <div class="hdr__ctrls">
+    <button class="round hdr__sound" type="button" aria-pressed="false" aria-label="Ambient sound (off)" data-sound>
+      <svg width="18" height="12" viewBox="0 0 18 12" aria-hidden="true"><path class="squiggle" d="M1 6 Q 3.25 1 5.5 6 T 10 6 T 14.5 6 T 19 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
+    </button>
+    <a class="pill pill--dark hdr__cta roll-host" href={predictorHref} data-scrollto><Roll text="TRY THE PREDICTOR" /><span class="pill__arrow" aria-hidden="true">▸</span></a>
+    <button class="pill hdr__menu roll-host" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu" data-menu-btn>
+      <span class="hdr__menu-label"><span class="when-closed"><Roll text="MENU" /></span><span class="when-open"><Roll text="CLOSE" /></span></span>
+      <span class="hdr__dots" aria-hidden="true"><i></i><i></i></span>
+    </button>
+  </div>
+
+  <nav id="menu" class="menu" aria-label="Site" data-menu hidden>
+    <div class="menu__card menu__nav">
+      <ul>
+        {NAV.map((item) => (
+          <li><a class="roll-host" href={item.href} aria-current={item.href === current ? 'page' : undefined}><span class="menu__dot" aria-hidden="true"></span><Roll text={item.label.toUpperCase()} /></a></li>
+        ))}
+      </ul>
+    </div>
+    <div class="menu__card menu__repro">
+      <p class="menu__h">Reproduce it</p>
+      <div class="menu__cmd">
+        <code class="t-mono">./py.sh -m src.reproduce</code>
+        <button class="round menu__copy" type="button" data-copy="./py.sh -m src.reproduce" aria-label="Copy the reproduce command">→</button>
+      </div>
+    </div>
+    <a class="menu__card menu__black roll-host" href={url('notebook/')}>
+      <span><Roll text="READ THE NOTEBOOK" /></span><span aria-hidden="true">↗</span>
+    </a>
+  </nav>
+</header>
+
+<style>
+  .hdr {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--pad-y) var(--pad-x) 0;
+    pointer-events: none;
+  }
+  .hdr > * {
+    pointer-events: auto;
+  }
+  .hdr__mark {
+    transition: color 0.4s var(--ease-1);
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+  .hdr[data-tone='dark'] .hdr__mark,
+  .hdr[data-tone='dark'] .hdr__back {
+    color: var(--c-white);
+  }
+  .hdr__back {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .hdr__ctrls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .hdr__sound .squiggle {
+    transition: d 0.6s var(--ease-expo);
+    animation: squiggle 1.2s linear infinite;
+  }
+  .hdr__sound[aria-pressed='false'] .squiggle {
+    d: path('M1 6 Q 3.25 6 5.5 6 T 10 6 T 14.5 6 T 19 6');
+    animation: none;
+  }
+  @keyframes squiggle {
+    to {
+      transform: translateX(-9px);
+    }
+  }
+  .hdr__sound svg {
+    overflow: hidden;
+    width: 18px;
+  }
+  .hdr__menu-label {
+    display: grid;
+  }
+  .hdr__menu-label > span {
+    grid-area: 1 / 1;
+    transition: opacity 0.3s var(--ease-1);
+  }
+  .when-open {
+    opacity: 0;
+  }
+  .hdr[data-open] .when-open {
+    opacity: 1;
+  }
+  .hdr[data-open] .when-closed {
+    opacity: 0;
+  }
+  .hdr__dots {
+    display: inline-flex;
+    gap: 3px;
+    transition: transform 0.5s var(--ease-expo);
+  }
+  .hdr__dots i {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .hdr[data-open] .hdr__dots {
+    transform: rotate(90deg);
+  }
+
+  /* Menu: a stack of floating cards under the menu button */
+  .menu {
+    position: absolute;
+    top: calc(var(--pad-y) + var(--header-h) + 10px);
+    right: var(--pad-x);
+    width: min(420px, calc(100vw - 2 * var(--pad-x)));
+    display: grid;
+    gap: 8px;
+  }
+  .menu[hidden] {
+    display: none;
+  }
+  .menu__card {
+    background: var(--c-white);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    opacity: 0;
+    transform: translateY(-14px) scale(0.98);
+    transform-origin: top right;
+    transition: opacity 0.5s var(--ease-1), transform 0.7s var(--ease-expo);
+  }
+  .hdr[data-open] .menu__card {
+    opacity: 1;
+    transform: none;
+  }
+  .hdr[data-open] .menu__card:nth-child(2) {
+    transition-delay: 60ms;
+  }
+  .hdr[data-open] .menu__card:nth-child(3) {
+    transition-delay: 120ms;
+  }
+  .menu__nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .menu__nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .menu__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: transparent;
+    transition: background-color 0.3s;
+  }
+  .menu__nav a[aria-current='page'] .menu__dot {
+    background: var(--c-black);
+  }
+  .menu__h {
+    margin: 0 0 14px;
+    font-size: 38px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .menu__cmd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--c-paper);
+    border-radius: 999px;
+    padding: 4px 4px 4px 16px;
+    font-size: 14px;
+  }
+  .menu__copy {
+    background: var(--c-black);
+    color: var(--c-white);
+  }
+  .menu__black {
+    background: var(--c-black);
+    color: var(--c-white);
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  @media (max-width: 760px) {
+    .hdr__cta,
+    .hdr__sound,
+    .hdr__menu-label {
+      display: none;
+    }
+    .hdr__menu {
+      width: var(--header-h);
+      padding: 0;
+      justify-content: center;
+      background: var(--c-pill);
+    }
+    .hdr[data-tone='dark'] .hdr__mark,
+  .hdr[data-tone='dark'] .hdr__back {
+    color: var(--c-white);
+  }
+  .hdr__back {
+      position: static;
+      transform: none;
+    }
+  }
+</style>

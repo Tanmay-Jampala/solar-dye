@@ -1,0 +1,13 @@
+---
+// "SECONDARY SOURCE" flag, driven by a `status` field in results.json. The full status text is
+// in the tooltip and, for keyboard and screen-reader users, in a visually hidden note.
+import { get } from '../lib/data';
+
+interface Props {
+  k: string; // key of the status string
+}
+const { k } = Astro.props;
+const status: string = get(k);
+const id = 'sec-' + k.replace(/[^a-z0-9]+/gi, '-');
+---
+<span class="tag-secondary" tabindex="0" title={status} data-bound="title" aria-describedby={id} data-status-key={k}>Secondary source</span><span class="sr-only" id={id} data-key={k}>{status}</span>

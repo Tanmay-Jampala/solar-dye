@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-12T04:57:51+00:00",
-  "git_commit": "0880c29c98c7d084308fc9719ffe4e5232361ab4",
+  "generated_at": "2026-11-12T08:32:58+00:00",
+  "git_commit": "3ccb2624f0fc35693e69484c1f5522fc30e068ff",
   "environment": {
     "python": "3.11.18",
     "platform": "Windows-10-10.0.26300-SP0",
@@ -437,7 +437,7 @@
     {
       "name": "ML screen of QM9 is at least 10^6 times faster than B3LYP",
       "expected": ">= 1e6",
-      "actual": 16254471.878552439,
+      "actual": 15651723.373773886,
       "passed": true
     },
     {
@@ -453,6 +453,30 @@
       "name": "every quantum calculation has a measured, positive wall time",
       "expected": 40,
       "actual": 40,
+      "passed": true
+    },
+    {
+      "name": "web tunnel: rows reaching each funnel stage match the funnel counts",
+      "expected": [
+        130831,
+        13087,
+        81,
+        10,
+        3
+      ],
+      "actual": [
+        130831,
+        13087,
+        81,
+        10,
+        3
+      ],
+      "passed": true
+    },
+    {
+      "name": "web presets: ridge prediction is finite for every preset",
+      "expected": 12,
+      "actual": 12,
       "passed": true
     },
     {
@@ -4164,9 +4188,9 @@
           "R2": -716.2200092773262
         },
         "random_forest": {
-          "MAE_eV": 3.0989081926651973,
+          "MAE_eV": 3.098908192665197,
           "RMSE_eV": 3.134233755104212,
-          "R2": -38.06536217098932
+          "R2": -38.06536217098931
         },
         "gradient_boosting": {
           "MAE_eV": 3.608971524792728,
@@ -4180,8 +4204,8 @@
           6.875319817488509
         ],
         "random_forest": [
-          5.215828970685987,
-          6.60768498219801
+          5.215828970685989,
+          6.607684982198013
         ],
         "gradient_boosting": [
           5.1585810449836345,
@@ -17109,31 +17133,31 @@
         "max_seconds": 546.2006349000003
       },
       "ML_inference_ridge": {
-        "total_seconds_for_dataset": 0.014997599995695055,
-        "mean_seconds_per_molecule": 1.1463338196371696e-07,
-        "wall_seconds": 0.014997599995695055,
-        "energy_J": 0.6748919998062775,
-        "energy_kWh": 1.8746999994618818e-07,
-        "cost_INR": 1.0873259996878915e-06,
-        "co2_kg": 1.362906899608788e-07
+        "total_seconds_for_dataset": 0.014545899990480393,
+        "mean_seconds_per_molecule": 1.111808362733633e-07,
+        "wall_seconds": 0.014545899990480393,
+        "energy_J": 0.6545654995716177,
+        "energy_kWh": 1.8182374988100491e-07,
+        "cost_INR": 1.0545777493098285e-06,
+        "co2_kg": 1.3218586616349057e-07
       },
       "ML_inference_random_forest": {
-        "total_seconds_for_dataset": 1.3005897999973968,
-        "mean_seconds_per_molecule": 9.940991049502005e-06,
-        "wall_seconds": 1.3005897999973968,
-        "energy_J": 58.526540999882855,
-        "energy_kWh": 1.625737249996746e-05,
-        "cost_INR": 9.429276049981126e-05,
-        "co2_kg": 1.1819109807476342e-05
+        "total_seconds_for_dataset": 1.3617093000066234,
+        "mean_seconds_per_molecule": 1.040815479516799e-05,
+        "wall_seconds": 1.3617093000066234,
+        "energy_J": 61.27691850029805,
+        "energy_kWh": 1.702136625008279e-05,
+        "cost_INR": 9.872392425048018e-05,
+        "co2_kg": 1.2374533263810189e-05
       },
       "ML_inference_gradient_boosting": {
-        "total_seconds_for_dataset": 2.583939099989948,
-        "mean_seconds_per_molecule": 1.9750205226513195e-05,
-        "wall_seconds": 2.583939099989948,
-        "energy_J": 116.27725949954765,
-        "energy_kWh": 3.2299238749874346e-05,
-        "cost_INR": 0.0001873355847492712,
-        "co2_kg": 2.3481546571158648e-05
+        "total_seconds_for_dataset": 2.6834467000007862,
+        "mean_seconds_per_molecule": 2.0510786434413758e-05,
+        "wall_seconds": 2.6834467000007862,
+        "energy_J": 120.75510150003538,
+        "energy_kWh": 3.354308375000983e-05,
+        "cost_INR": 0.000194549885750057,
+        "co2_kg": 2.4385821886257146e-05
       },
       "ML_training_ridge": {
         "grid_search_seconds": 0.16596949998347554,
@@ -17169,11 +17193,11 @@
       "co2_kg": 0.14336500485582113
     },
     "project_total": {
-      "wall_seconds": 15846.791846299937,
-      "energy_J": 713105.6330834972,
-      "energy_kWh": 0.1980848980787492,
-      "cost_INR": 1.1488924088567454,
-      "co2_kg": 0.14400772090325067
+      "wall_seconds": 15846.952021699952,
+      "energy_J": 713112.8409764979,
+      "energy_kWh": 0.1980869002712494,
+      "cost_INR": 1.1489040215732464,
+      "co2_kg": 0.1440091764971983
     },
     "full_dataset_extrapolation": {
       "molecules": 130831,
@@ -17206,14 +17230,14 @@
       },
       "ml_screen_all_qm9": {
         "model": "gradient_boosting",
-        "wall_seconds": 2.583939099989948,
-        "energy_J": 116.27725949954765,
-        "energy_kWh": 3.2299238749874346e-05,
-        "cost_INR": 0.0001873355847492712,
-        "co2_kg": 2.3481546571158648e-05
+        "wall_seconds": 2.6834467000007862,
+        "energy_J": 120.75510150003538,
+        "energy_kWh": 3.354308375000983e-05,
+        "cost_INR": 0.000194549885750057,
+        "co2_kg": 2.4385821886257146e-05
       },
-      "speedup_ml_over_dft": 16254471.878552439,
-      "headline": "Running B3LYP on all 130,831 QM9 molecules on this laptop would take 1.3 years and 525 kWh (upper bound); the ML surrogate screens them in 2.58 seconds."
+      "speedup_ml_over_dft": 15651723.373773886,
+      "headline": "Running B3LYP on all 130,831 QM9 molecules on this laptop would take 1.3 years and 525 kWh (upper bound); the ML surrogate screens them in 2.68 seconds."
     },
     "landauer_comparison": {
       "temperature_K": 300.0,
@@ -17223,8 +17247,8 @@
       "cpu_energy_per_flop_J": 1.875e-10,
       "ratio_energy_per_flop_to_landauer": 65308735279.97356,
       "orders_of_magnitude_above_landauer": 10.814971273620703,
-      "project_energy_J": 713105.6330834972,
-      "bits_erasable_at_landauer_limit_with_project_energy": 2.4838414409444303e+26,
+      "project_energy_J": 713112.8409764979,
+      "bits_erasable_at_landauer_limit_with_project_energy": 2.4838665469911456e+26,
       "note": "one floating-point operation erases more than one bit, so per-bit the real CPU is somewhat closer to the limit than this ratio says; the order of magnitude is the point"
     },
     "timings": [
@@ -17549,5 +17573,278 @@
         "kind": "torsion scan point"
       }
     ]
+  },
+  "web": {
+    "feature_order": [
+      "molecular_weight",
+      "logp",
+      "h_bond_donors",
+      "h_bond_acceptors",
+      "tpsa",
+      "rotatable_bonds",
+      "ring_count",
+      "aromatic_ring_count",
+      "fraction_sp3",
+      "bertz_complexity",
+      "largest_conjugated_system"
+    ],
+    "predictor_presets": [
+      {
+        "name": "benzene",
+        "smiles": "c1ccccc1",
+        "kind": "Part 2 molecule",
+        "reference_gap_eV": 6.796841488125302,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 2)",
+        "descriptors": {
+          "molecular_weight": 78.11399999999999,
+          "logp": 1.6866,
+          "h_bond_donors": 0.0,
+          "h_bond_acceptors": 0.0,
+          "tpsa": 0.0,
+          "rotatable_bonds": 0.0,
+          "ring_count": 1.0,
+          "aromatic_ring_count": 1.0,
+          "fraction_sp3": 0.0,
+          "bertz_complexity": 71.96100505779535,
+          "largest_conjugated_system": 6.0
+        },
+        "ridge_predicted_gap_eV": 6.5422962762305295
+      },
+      {
+        "name": "biphenyl",
+        "smiles": "c1ccc(-c2ccccc2)cc1",
+        "kind": "Part 2 molecule",
+        "reference_gap_eV": 5.365023699853541,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 2)",
+        "descriptors": {
+          "molecular_weight": 154.21199999999996,
+          "logp": 3.353600000000001,
+          "h_bond_donors": 0.0,
+          "h_bond_acceptors": 0.0,
+          "tpsa": 0.0,
+          "rotatable_bonds": 1.0,
+          "ring_count": 2.0,
+          "aromatic_ring_count": 2.0,
+          "fraction_sp3": 0.0,
+          "bertz_complexity": 297.4313204906765,
+          "largest_conjugated_system": 12.0
+        },
+        "ridge_predicted_gap_eV": 4.519226287915476
+      },
+      {
+        "name": "thiophene",
+        "smiles": "c1ccsc1",
+        "kind": "Part 2 molecule",
+        "reference_gap_eV": 6.127242868533612,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 2)",
+        "descriptors": {
+          "molecular_weight": 84.14299999999999,
+          "logp": 1.7480999999999998,
+          "h_bond_donors": 0.0,
+          "h_bond_acceptors": 1.0,
+          "tpsa": 0.0,
+          "rotatable_bonds": 0.0,
+          "ring_count": 1.0,
+          "aromatic_ring_count": 1.0,
+          "fraction_sp3": 0.0,
+          "bertz_complexity": 60.12481811269772,
+          "largest_conjugated_system": 5.0
+        },
+        "ridge_predicted_gap_eV": 6.803686410087983
+      },
+      {
+        "name": "bithiophene",
+        "smiles": "c1csc(-c2cccs2)c1",
+        "kind": "Part 2 molecule",
+        "reference_gap_eV": 4.338743563882809,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 2)",
+        "descriptors": {
+          "molecular_weight": 166.26999999999998,
+          "logp": 3.4766000000000012,
+          "h_bond_donors": 0.0,
+          "h_bond_acceptors": 2.0,
+          "tpsa": 0.0,
+          "rotatable_bonds": 1.0,
+          "ring_count": 2.0,
+          "aromatic_ring_count": 2.0,
+          "fraction_sp3": 0.0,
+          "bertz_complexity": 246.66674200919024,
+          "largest_conjugated_system": 10.0
+        },
+        "ridge_predicted_gap_eV": 5.209536027476072
+      },
+      {
+        "name": "terthiophene",
+        "smiles": "c1csc(-c2ccc(-c3cccs3)s2)c1",
+        "kind": "Part 2 molecule",
+        "reference_gap_eV": 3.5404073311836033,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 2)",
+        "descriptors": {
+          "molecular_weight": 248.39700000000002,
+          "logp": 5.2051000000000025,
+          "h_bond_donors": 0.0,
+          "h_bond_acceptors": 3.0,
+          "tpsa": 0.0,
+          "rotatable_bonds": 2.0,
+          "ring_count": 3.0,
+          "aromatic_ring_count": 3.0,
+          "fraction_sp3": 0.0,
+          "bertz_complexity": 480.46168202271497,
+          "largest_conjugated_system": 15.0
+        },
+        "ridge_predicted_gap_eV": 3.323188204581024
+      },
+      {
+        "name": "4-nitroaniline",
+        "smiles": "Nc1ccc(cc1)[N+](=O)[O-]",
+        "kind": "Part 2 molecule",
+        "reference_gap_eV": 4.301616606173855,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 2)",
+        "descriptors": {
+          "molecular_weight": 138.126,
+          "logp": 1.177,
+          "h_bond_donors": 1.0,
+          "h_bond_acceptors": 3.0,
+          "tpsa": 69.16,
+          "rotatable_bonds": 1.0,
+          "ring_count": 1.0,
+          "aromatic_ring_count": 1.0,
+          "fraction_sp3": 0.0,
+          "bertz_complexity": 242.4296583765568,
+          "largest_conjugated_system": 10.0
+        },
+        "ridge_predicted_gap_eV": 4.511961622448001
+      },
+      {
+        "name": "4-aminobenzonitrile",
+        "smiles": "Nc1ccc(C#N)cc1",
+        "kind": "Part 2 molecule",
+        "reference_gap_eV": 5.178004919330585,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 2)",
+        "descriptors": {
+          "molecular_weight": 118.139,
+          "logp": 1.14048,
+          "h_bond_donors": 1.0,
+          "h_bond_acceptors": 2.0,
+          "tpsa": 49.81,
+          "rotatable_bonds": 0.0,
+          "ring_count": 1.0,
+          "aromatic_ring_count": 1.0,
+          "fraction_sp3": 0.0,
+          "bertz_complexity": 230.08821798626082,
+          "largest_conjugated_system": 9.0
+        },
+        "ridge_predicted_gap_eV": 4.914518259399765
+      },
+      {
+        "name": "coumarin",
+        "smiles": "O=c1ccc2ccccc2o1",
+        "kind": "Part 2 molecule",
+        "reference_gap_eV": 4.617630765502184,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 2)",
+        "descriptors": {
+          "molecular_weight": 146.14499999999998,
+          "logp": 1.793,
+          "h_bond_donors": 0.0,
+          "h_bond_acceptors": 2.0,
+          "tpsa": 30.21,
+          "rotatable_bonds": 0.0,
+          "ring_count": 2.0,
+          "aromatic_ring_count": 2.0,
+          "fraction_sp3": 0.0,
+          "bertz_complexity": 428.5108208761056,
+          "largest_conjugated_system": 11.0
+        },
+        "ridge_predicted_gap_eV": 3.868940833415773
+      },
+      {
+        "name": "azobenzene",
+        "smiles": "c1ccc(/N=N/c2ccccc2)cc1",
+        "kind": "Part 2 molecule",
+        "reference_gap_eV": 3.9331540278690924,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 2)",
+        "descriptors": {
+          "molecular_weight": 182.22600000000003,
+          "logp": 4.102000000000002,
+          "h_bond_donors": 0.0,
+          "h_bond_acceptors": 2.0,
+          "tpsa": 24.72,
+          "rotatable_bonds": 2.0,
+          "ring_count": 2.0,
+          "aromatic_ring_count": 2.0,
+          "fraction_sp3": 0.0,
+          "bertz_complexity": 365.35156717534267,
+          "largest_conjugated_system": 14.0
+        },
+        "ridge_predicted_gap_eV": 3.59733856962018
+      },
+      {
+        "name": "screen rank 1",
+        "smiles": "CCNC(=N)C(=O)C=O",
+        "kind": "screening candidate",
+        "reference_gap_eV": 2.994374485045396,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 5 verification)",
+        "qm9_gap_eV": 3.028627289178464,
+        "descriptors": {
+          "molecular_weight": 128.13099999999997,
+          "logp": -0.6588300000000002,
+          "h_bond_donors": 2.0,
+          "h_bond_acceptors": 3.0,
+          "tpsa": 70.02000000000001,
+          "rotatable_bonds": 3.0,
+          "ring_count": 0.0,
+          "aromatic_ring_count": 0.0,
+          "fraction_sp3": 0.4,
+          "bertz_complexity": 141.89342114105557,
+          "largest_conjugated_system": 7.0
+        },
+        "ridge_predicted_gap_eV": 4.902651653287197
+      },
+      {
+        "name": "screen rank 2",
+        "smiles": "C(=O)C(=O)C(=N)NC=N",
+        "kind": "screening candidate",
+        "reference_gap_eV": 2.9553152022885802,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 5 verification)",
+        "qm9_gap_eV": 3.1456362500362127,
+        "descriptors": {
+          "molecular_weight": 127.103,
+          "logp": -1.07166,
+          "h_bond_donors": 3.0,
+          "h_bond_acceptors": 4.0,
+          "tpsa": 93.87,
+          "rotatable_bonds": 3.0,
+          "ring_count": 0.0,
+          "aromatic_ring_count": 0.0,
+          "fraction_sp3": 0.0,
+          "bertz_complexity": 163.19568302167357,
+          "largest_conjugated_system": 9.0
+        },
+        "ridge_predicted_gap_eV": 3.731079434014379
+      },
+      {
+        "name": "screen rank 3",
+        "smiles": "c1coc2c1C(=O)C=C2",
+        "kind": "screening candidate",
+        "reference_gap_eV": 3.383899814470489,
+        "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 5 verification)",
+        "qm9_gap_eV": 3.42319238974529,
+        "descriptors": {
+          "molecular_weight": 120.10699999999997,
+          "logp": 1.4890999999999999,
+          "h_bond_donors": 0.0,
+          "h_bond_acceptors": 2.0,
+          "tpsa": 30.21,
+          "rotatable_bonds": 0.0,
+          "ring_count": 2.0,
+          "aromatic_ring_count": 1.0,
+          "fraction_sp3": 0.0,
+          "bertz_complexity": 280.86118710702766,
+          "largest_conjugated_system": 9.0
+        },
+        "ridge_predicted_gap_eV": 4.2928695578813185
+      }
+    ],
+    "qm9_points_file": "results/web_qm9_points.json"
   }
 }

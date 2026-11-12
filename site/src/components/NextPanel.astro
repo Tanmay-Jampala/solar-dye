@@ -1,0 +1,80 @@
+---
+// Black "keep scrolling" panel. Scrolling through it fills a progress line and then navigates to
+// the next page; a plain link is always there (and is the only mechanism with reduced motion).
+import Roll from './Roll.astro';
+
+interface Props {
+  href: string;
+  label: string; // e.g. "PART 0 — DATA"
+  title: string; // huge title
+}
+const { href, label, title } = Astro.props;
+---
+<section class="next" aria-label="Next page" data-next data-href={href} data-tone="dark">
+  <div class="next__sticky">
+    <p class="t-label next__kicker">Keep scrolling to learn more</p>
+    <p class="next__label t-label">{label}</p>
+    <p class="next__title t-display" aria-hidden="true">{title}</p>
+    <a class="next__link t-label roll-host" href={href}>
+      <Roll text="NEXT PAGE" />
+      <span class="next__line"><span data-next-fill></span></span>
+      <span aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>
+
+<style>
+  .next {
+    position: relative;
+    height: 170vh;
+    background: var(--c-black);
+    color: var(--c-white);
+  }
+  .next__sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-inline: var(--pad-x);
+    gap: 18px;
+  }
+  .next__kicker {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .next__title {
+    font-size: clamp(3.5rem, 14vw, 16rem);
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+  .next__link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 640px;
+  }
+  .next__line {
+    position: relative;
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.25);
+  }
+  .next__line span {
+    position: absolute;
+    inset: 0;
+    background: var(--c-white);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .next {
+      height: auto;
+    }
+    .next__sticky {
+      position: static;
+      height: auto;
+      padding-block: 120px;
+    }
+  }
+</style>

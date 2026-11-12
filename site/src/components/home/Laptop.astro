@@ -1,0 +1,131 @@
+---
+// Second statement and the laptop. The DOM laptop is the fallback; with WebGL it is replaced by the
+// 3D laptop (webgl/laptop.ts), whose screen draws the same funnel from data-funnel via format().
+import Num from '../Num.astro';
+import { get } from '../../lib/data';
+
+const funnel: { stage: string; count: number }[] = get('model.screening.funnel');
+---
+<section class="lap wrap" aria-labelledby="lap-h">
+  <h2 id="lap-h" class="t-display t-offset" data-reveal>
+    <span class="line">Where a Laptop</span>
+    <span class="line">Meets the Sun</span>
+  </h2>
+
+  <div class="grid lap__row">
+    <div class="lap__device" data-laptop aria-hidden="true" data-funnel={JSON.stringify(funnel)}>
+      <div class="lap__lid">
+        <div class="lap__screen t-mono">
+          <p class="lap__screen-h">screen.run()</p>
+          <ol>
+            {funnel.map((step, i) => (
+              <li style={`--i:${i}`}><span class="lap__count"><Num k={`model.screening.funnel[${i}].count`} /></span><span class="lap__stage"><Num k={`model.screening.funnel[${i}].stage`} /></span></li>
+            ))}
+          </ol>
+        </div>
+      </div>
+      <div class="lap__base"></div>
+    </div>
+
+    <div class="lap__text">
+      <p data-reveal>
+        Screening means asking a cheap question many times and an expensive question a few times. A machine-learning model guesses the gap of every molecule in QM9; quantum chemistry then checks the few that land closest to the sweet spot.
+      </p>
+      <p data-reveal>
+        Why a laptop? Because that is what a student has, and because it makes the cost of every calculation honest. Everything here ran on one machine: <Num k="quantum.hardware" />. Its processor is rated at <Num k="energy.assumptions.cpu_tdp_W.value" u="W" />, which is how the last experiment puts a price on knowing.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .lap {
+    padding-top: clamp(120px, 14vw, 240px);
+  }
+  .lap__row {
+    margin-top: clamp(50px, 6vw, 100px);
+    align-items: center;
+    row-gap: 48px;
+  }
+  .lap__device {
+    grid-column: 1 / span 6;
+    perspective: 1600px;
+    padding: 4% 6%;
+  }
+  .lap__lid {
+    background: #0b0c12;
+    border-radius: 18px 18px 6px 6px;
+    padding: 3.2%;
+    transform: rotateX(4deg) rotateY(-14deg) rotateZ(-1.5deg);
+    transform-origin: bottom center;
+    box-shadow: 0 40px 80px -40px rgba(7, 27, 223, 0.45);
+  }
+  .lap__screen {
+    aspect-ratio: 16 / 10;
+    border-radius: 8px;
+    background: radial-gradient(120% 120% at 20% 0%, #10184d, #04050a 60%);
+    color: #e9ecff;
+    padding: 6% 7%;
+    font-size: clamp(11px, 1vw, 15px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .lap__screen-h {
+    margin: 0 0 1.2em;
+    color: var(--c-acid);
+  }
+  .lap__screen ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.7em;
+  }
+  .lap__screen li {
+    display: grid;
+    grid-template-columns: 8ch 1fr;
+    gap: 1.2em;
+    opacity: calc(1 - var(--i) * 0.08);
+  }
+  .lap__count {
+    text-align: right;
+    color: var(--c-white);
+  }
+  .lap__stage {
+    color: rgba(233, 236, 255, 0.7);
+  }
+  .lap__stage :global(.num) {
+    white-space: normal;
+  }
+  .lap__base {
+    height: 14px;
+    margin: 0 -4%;
+    background: linear-gradient(#cfd2df, #9ea2b3);
+    border-radius: 2px 2px 14px 14px;
+    transform: rotateY(-14deg) rotateZ(-1.5deg);
+  }
+  .lap__text {
+    grid-column: 8 / span 4;
+    display: grid;
+    gap: 1.2em;
+    font-size: clamp(17px, 1.25vw, 20px);
+    line-height: 1.4;
+  }
+  .lap__text p {
+    margin: 0;
+  }
+  .lap__text :global(.num) {
+    white-space: normal;
+  }
+  /* WebGL: the 3D laptop is drawn on the page canvas over this box; keep the box for layout. */
+  :global(html.gl-lap) .lap__device > * {
+    visibility: hidden;
+  }
+  @media (max-width: 760px) {
+    .lap__device,
+    .lap__text {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

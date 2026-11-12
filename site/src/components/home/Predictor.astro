@@ -1,0 +1,368 @@
+---
+// The predictor: the notebook's Ridge model (model.ridge_for_web) running in the browser on the 11
+// descriptors in web.feature_order. Presets fill the inputs with stored descriptors of the Part 2
+// molecules and the three screening hits (web.predictor_presets). The browser's prediction is
+// checked against the stored Python prediction at build time (scripts/test-ridge.mjs).
+// The caveat block is permanent: always visible, never collapsible.
+// No SMILES box: computing the same 11 descriptors in the browser would need RDKit.js matched to
+// the notebook's RDKit version plus a ported conjugation descriptor and a parity test.
+import Num from '../Num.astro';
+import Count from '../Count.astro';
+import { get } from '../../lib/data';
+import { format } from '../../lib/format';
+import type { RidgeModel, FeatureStats } from '../../lib/ridge';
+
+const order: string[] = get('web.feature_order');
+const model: RidgeModel = get('model.ridge_for_web');
+const presets: { name: string; descriptors: Record<string, number>; ridge_predicted_gap_eV: number }[] = get('web.predictor_presets');
+const labels: Record<string, string> = get('descriptors.labels');
+const stats: Record<string, FeatureStats> = get('descriptors.summary_statistics');
+const curve: { gap_eV: number[]; efficiency: number[] } = get('sq.curve');
+const target: number = get('model.screening.target_gap_eV');
+const INTEGER = new Set(['h_bond_donors', 'h_bond_acceptors', 'rotatable_bonds', 'ring_count', 'aromatic_ring_count', 'largest_conjugated_system']);
+const last = curve.gap_eV.length - 1;
+const p0 = presets[0];
+const gap0 = p0.ridge_predicted_gap_eV;
+
+// Ruler (layout only): 0 to 8 eV.
+const R0 = 0, R1 = 8;
+const rp = (v: number) => `${((Math.min(R1, Math.max(R0, v)) - R0) / (R1 - R0)) * 100}%`;
+
+const appData = JSON.stringify({ order, model, presets, stats, curve, target, integer: [...INTEGER], ruler: [R0, R1] });
+---
+<section id="predictor" class="pred" aria-labelledby="pred-h" data-tone="dark">
+  <div class="pred__stickers" data-stickers aria-hidden="true"></div>
+  <div class="wrap pred__wrap">
+    <p class="t-label pred__kicker" data-fade>Ready to guess a gap?</p>
+    <h2 id="pred-h" class="t-display t-display--l t-offset pred__h" data-reveal>
+      <span class="line">Try the</span>
+      <span class="line">Predictor</span>
+    </h2>
+
+    <div class="pred__card" data-predictor data-json={appData}>
+      <div class="pred__left">
+        <div class="pr__presets" role="group" aria-labelledby="pr-presets-h">
+          <p id="pr-presets-h" class="t-label pr__h">Fill with a known molecule</p>
+          <div class="pr__chips">
+            {presets.map((_, i) => (
+              <button type="button" class="pr__chip t-mono" data-preset={i} aria-pressed={i === 0 ? 'true' : 'false'}><Num k={`web.predictor_presets[${i}].name`} /></button>
+            ))}
+          </div>
+        </div>
+
+        <form class="pr__form" data-form novalidate>
+          <p class="t-label pr__h">The <Num k="web.feature_order" value={order.length} rule="predictor.count" /> descriptors Ridge uses</p>
+          <div class="pr__fields">
+            {order.map((f) => {
+              const s = stats[f];
+              const step = INTEGER.has(f) ? 1 : (s.max - s.min) / 400;
+              return (
+                <div class="pr__field" data-field={f}>
+                  <div class="pr__label-row">
+                    <label for={`pr-${f}`} class="pr__label">{labels[f]}</label>
+                    <span class="pr__flag" data-flag></span>
+                  </div>
+                  <div class="pr__inputs">
+                    <input class="pr__slider" type="range" min={s.min} max={s.max} step={step} value={p0.descriptors[f]} data-slider aria-label={`${labels[f]}, slider`} data-bound="aria-label" tabindex="-1" />
+                    <input class="pr__num t-mono" id={`pr-${f}`} type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value={format(`predictor.input.${f}`, p0.descriptors[f]).n} data-input />
+                  </div>
+                  <span class="pr__range t-mono">QM9 <Num k={`descriptors.summary_statistics.${f}.min`} /> to <Num k={`descriptors.summary_statistics.${f}.max`} /></span>
+                </div>
+              );
+            })}
+          </div>
+        </form>
+      </div>
+
+      <div class="pred__right">
+        <div class="pr__out" aria-live="polite" aria-atomic="false">
+          <p class="t-label pr__h">Predicted gap · Ridge</p>
+          <p class="pr__gap t-mono" data-out-gap><Num k={`web.predictor_presets[0].ridge_predicted_gap_eV`} rule="predictor.gap_eV" u="eV" /></p>
+          <div class="pr__ruler" aria-hidden="true">
+            <span class="pr__ruler-axis"></span>
+            <span class="pr__ruler-target" style={`left:${rp(target)}`}></span>
+            <span class="pr__ruler-dot" data-out-dot style={`left:${rp(gap0)}`}></span>
+            <span class="pr__ruler-lo t-mono" style={`left:${rp(target)}`}>target</span>
+          </div>
+          <p class="pr__line" data-out-dist>
+            <Num k="model.screening.target_gap_eV" value={Math.abs(gap0 - target)} rule="predictor.distance_eV" u="eV" /> {gap0 >= target ? 'above' : 'below'} the <Num k="model.screening.target_gap_eV" u="eV" /> target.
+          </p>
+          <p class="pr__line" data-out-sq>
+            Outside the stored efficiency curve (<Num k="sq.curve.gap_eV[0]" u="eV" /> to <Num k={`sq.curve.gap_eV[${last}]`} u="eV" />), so no Shockley–Queisser limit is read for it.
+          </p>
+          <p class="pr__line pr__muted" data-out-ref>
+            Reference for <Num k="web.predictor_presets[0].name" />: <Num k="web.predictor_presets[0].reference_gap_eV" rule="predictor.gap_eV" u="eV" />, <Num k="web.predictor_presets[0].reference" />. The notebook's Ridge gave <Num k="web.predictor_presets[0].ridge_predicted_gap_eV" rule="predictor.gap_eV" u="eV" />; this page reproduces it.
+          </p>
+          <p class="pr__warn" data-out-warn hidden></p>
+        </div>
+
+        <aside class="pred__caveat" aria-label="Read this before trusting the prediction">
+          <p class="t-label pred__caveat-h">Treat it as a toy</p>
+          <p>
+            This is the Ridge model, the weakest of the <Count k="model.metrics" />: test MAE <Num k="model.metrics.ridge.test.MAE_eV" u="eV" />, against <Num k="model.metrics.gradient_boosting.test.MAE_eV" u="eV" /> for gradient boosting.
+          </p>
+          <p>
+            It was trained on QM9 molecules with at most <Num k="data.qm9.max_heavy_atoms" /> heavy atoms. On real dyes (HOPV15) its mean error is <Num k="model.out_of_domain_hopv.metrics.ridge.MAE_eV" u="eV" />, and it predicts gaps as low as <Num k="model.out_of_domain_hopv.predicted_gap_range_eV.ridge[0]" u="eV" />.
+          </p>
+          <p>Treat it as a toy.</p>
+        </aside>
+      </div>
+    </div>
+    <noscript><p class="pr__noscript t-mono">The predictor runs in your browser and needs JavaScript. The caveat above still applies to every number it would show.</p></noscript>
+  </div>
+</section>
+
+<style>
+  .pred {
+    position: relative;
+    background: var(--c-black);
+    color: var(--c-white);
+    padding-block: clamp(60px, 8vw, 140px) clamp(100px, 12vw, 200px);
+    overflow: hidden;
+  }
+  .pred__stickers {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: min(110vh, 1100px);
+    pointer-events: none;
+  }
+  .pred__stickers :global(canvas) {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .pred__wrap {
+    position: relative;
+    z-index: 1;
+  }
+  .pred__kicker {
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 24px;
+  }
+  .pred__card {
+    margin-top: clamp(50px, 6vw, 100px);
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: clamp(24px, 3vw, 48px);
+    background: #0d0e14;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius);
+    padding: clamp(20px, 3vw, 44px);
+  }
+  .pr__h {
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 14px;
+  }
+  .pr__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .pr__chip {
+    font-size: 13px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: var(--c-white);
+    cursor: pointer;
+    transition: background-color 0.25s, color 0.25s, border-color 0.25s;
+  }
+  .pr__chip:hover {
+    border-color: var(--c-white);
+  }
+  .pr__chip[aria-pressed='true'] {
+    background: var(--c-white);
+    color: var(--c-black);
+  }
+  .pr__chip:focus-visible,
+  .pr__num:focus-visible {
+    outline: 2px solid var(--c-acid);
+    outline-offset: 2px;
+  }
+  .pr__form {
+    margin-top: 32px;
+  }
+  .pr__fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 28px;
+  }
+  .pr__field {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+  .pr__label-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .pr__label {
+    font-size: 14px;
+  }
+  .pr__flag {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .pr__field[data-state='sigma'] .pr__flag {
+    color: #ffb36b;
+  }
+  .pr__field[data-state='range'] .pr__flag {
+    color: var(--c-red);
+  }
+  .pr__field[data-state='range'] .pr__num {
+    border-color: var(--c-red);
+  }
+  .pr__inputs {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 9ch;
+    gap: 10px;
+    align-items: center;
+  }
+  .pr__slider {
+    width: 100%;
+    accent-color: var(--c-acid);
+  }
+  .pr__num {
+    width: 100%;
+    background: #05060a;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    color: var(--c-white);
+    font-size: 14px;
+    padding: 6px 8px;
+    text-align: right;
+  }
+  .pr__range {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .pred__right {
+    display: grid;
+    gap: 28px;
+    align-content: start;
+  }
+  .pr__out {
+    display: grid;
+    gap: 12px;
+  }
+  .pr__out p {
+    margin: 0;
+  }
+  .pr__gap {
+    font-size: clamp(3rem, 6vw, 6rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--c-acid);
+  }
+  .pr__gap :global(.unit) {
+    font-size: 0.35em;
+    letter-spacing: 0;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .pr__ruler {
+    position: relative;
+    height: 36px;
+    margin: 4px 0 6px;
+  }
+  .pr__ruler-axis {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 12px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .pr__ruler-target {
+    position: absolute;
+    top: 4px;
+    width: 16px;
+    height: 16px;
+    margin-left: -8px;
+    border-radius: 50%;
+    border: 2px solid var(--c-white);
+  }
+  .pr__ruler-dot {
+    position: absolute;
+    top: 6px;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    border-radius: 50%;
+    background: var(--c-acid);
+    transition: left 0.5s var(--ease-expo);
+  }
+  .pr__ruler-lo {
+    position: absolute;
+    top: 22px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+  }
+  .pr__ruler-lo {
+    transform: translateX(-50%);
+  }
+  .pr__line {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .pr__line :global(.num) {
+    white-space: normal;
+  }
+  .pr__muted {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+  }
+  .pr__warn {
+    border-left: 2px solid var(--c-red);
+    padding-left: 12px;
+    color: var(--c-red);
+    font-size: 14px;
+  }
+  .pred__caveat {
+    border-left: 2px solid var(--c-red);
+    padding-left: clamp(16px, 2vw, 28px);
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .pred__caveat p {
+    margin: 0;
+  }
+  .pred__caveat-h {
+    color: var(--c-red);
+  }
+  .pr__noscript {
+    margin-top: 20px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  @media (max-width: 1100px) {
+    .pr__fields {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 760px) {
+    .pred__card {
+      grid-template-columns: 1fr;
+    }
+    /* phone order: presets, output and caveat, then the inputs */
+    .pred__left {
+      display: contents;
+    }
+    .pr__presets {
+      order: 0;
+    }
+    .pred__right {
+      order: 1;
+    }
+    .pr__form {
+      order: 2;
+      margin-top: 0;
+    }
+  }
+</style>

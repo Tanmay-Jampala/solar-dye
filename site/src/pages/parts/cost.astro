@@ -1,0 +1,227 @@
+---
+import PartLayout from '../../layouts/PartLayout.astro';
+import Num from '../../components/Num.astro';
+import Figure from '../../components/Figure.astro';
+import SecondaryTag from '../../components/SecondaryTag.astro';
+import { PARTS } from '../../lib/site';
+import { get } from '../../lib/data';
+
+const part = PARTS[7];
+// Log ruler (layout only): energy per event from 1e-22 J to 1e-8 J.
+const landauer: number = get('energy.landauer_comparison.landauer_limit_J_per_bit');
+const flop: number = get('energy.landauer_comparison.cpu_energy_per_flop_J');
+const L0 = -22, L1 = -8;
+const lx = (v: number) => `${((Math.log10(v) - L0) / (L1 - L0)) * 100}%`;
+const decades = Array.from({ length: L1 - L0 + 1 }, (_, i) => i);
+---
+<PartLayout
+  part={part}
+  question="What did knowing all this cost, and what would the brute-force way have cost?"
+  description="Part 7 of Solar Dye: the time, energy, money and CO₂ of the whole project, the cost of running B3LYP on all of QM9, and how far a laptop is from the Landauer limit."
+  facts={[
+    { k: 'energy.full_dataset_extrapolation.b3lyp_all_qm9.mean.years', label: 'B3LYP on all of QM9, on this laptop', u: 'years' },
+    { k: 'energy.full_dataset_extrapolation.ml_screen_all_qm9.wall_seconds', label: 'The ML screen of all of QM9', u: 's' },
+    { k: 'energy.landauer_comparison.orders_of_magnitude_above_landauer', label: 'Orders of magnitude above the Landauer limit' },
+  ]}
+>
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">The whole project, every calculation</h2>
+    <div class="counters">
+      <div class="counter" data-fade><p class="t-label">Computing time</p><p class="counter__n t-mono" data-odo><Num k="energy.project_total.wall_seconds" derived="hoursFromSeconds" /></p></div>
+      <div class="counter" data-fade><p class="t-label">Energy (upper bound)</p><p class="counter__n t-mono" data-odo><Num k="energy.project_total.energy_kWh" /></p></div>
+      <div class="counter" data-fade><p class="t-label">Electricity cost</p><p class="counter__n t-mono" data-odo><Num k="energy.project_total.cost_INR" /></p></div>
+      <div class="counter" data-fade><p class="t-label">CO₂</p><p class="counter__n t-mono" data-odo><Num k="energy.project_total.co2_kg" /></p></div>
+    </div>
+    <p class="note" data-fade><Num k="energy.method" />.</p>
+  </section>
+
+  <section class="psec wrap cols prose">
+    <div>
+      <h2 class="t-label psec__label">What we did</h2>
+      <p data-reveal>Every quantum calculation was timed: <Num k="energy.all_quantum_calculations.count" /> of them. Energy is the processor's rated power, <Num k="energy.assumptions.cpu_tdp_W.value" u="W" />, times the measured time; cost and CO₂ follow from the Karnataka tariff and India's grid emission factor.</p>
+    </div>
+    <div>
+      <h2 class="t-label psec__label">What we found</h2>
+      <p data-reveal>The whole project used <Num k="energy.project_total.energy_kWh" /> and cost <Num k="energy.project_total.cost_INR" />. Running B3LYP on every QM9 molecule instead would take <Num k="energy.full_dataset_extrapolation.b3lyp_all_qm9.mean.years" /> years and <Num k="energy.full_dataset_extrapolation.b3lyp_all_qm9.mean.energy_kWh" />. The trained model screens all of QM9 in <Num k="energy.full_dataset_extrapolation.ml_screen_all_qm9.wall_seconds" u="s" />.</p>
+    </div>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">Brute force against the model</h2>
+    <div class="split">
+      <div class="split__side card card--dark" data-fade>
+        <p class="t-label">B3LYP on all of QM9</p>
+        <p class="split__n t-mono"><Num k="energy.full_dataset_extrapolation.b3lyp_all_qm9.mean.years" /><span class="unit"> years</span></p>
+        <p class="split__sub t-mono"><Num k="energy.full_dataset_extrapolation.b3lyp_all_qm9.mean.energy_kWh" /> · <Num k="energy.full_dataset_extrapolation.b3lyp_all_qm9.mean.cost_INR" /> · <Num k="energy.full_dataset_extrapolation.b3lyp_all_qm9.mean.co2_kg" /> CO₂</p>
+        <p class="split__range t-small">Bracket from the fastest and slowest measured molecules: <Num k="energy.full_dataset_extrapolation.b3lyp_all_qm9.fastest_measured.years" /> to <Num k="energy.full_dataset_extrapolation.b3lyp_all_qm9.slowest_measured.years" /> years.</p>
+      </div>
+      <div class="split__side card card--blue" data-fade>
+        <p class="t-label">Gradient boosting on all of QM9</p>
+        <p class="split__n t-mono"><Num k="energy.full_dataset_extrapolation.ml_screen_all_qm9.wall_seconds" /><span class="unit"> seconds</span></p>
+        <p class="split__sub t-mono"><Num k="energy.full_dataset_extrapolation.ml_screen_all_qm9.energy_kWh" /> · <Num k="energy.full_dataset_extrapolation.ml_screen_all_qm9.cost_INR" /></p>
+        <p class="split__range t-small">Speed-up: <Num k="energy.full_dataset_extrapolation.speedup_ml_over_dft" />×. The model's time is re-measured on every run, so this ratio changes a little each time.</p>
+      </div>
+    </div>
+    <p class="note" data-fade><Num k="energy.full_dataset_extrapolation.basis" />.</p>
+    <div class="psec cols">
+      <div data-fade><Figure name="fig16_time_per_molecule" alt="Measured computing time per molecule for each method." /></div>
+      <div data-fade><Figure name="fig17_extrapolation" alt="Extrapolated time and energy of B3LYP on all of QM9 against the ML screen." /></div>
+    </div>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">The Landauer limit · the least energy physics allows to erase one bit</h2>
+    <div class="card ruler" data-fade>
+      <div class="ruler__track">
+        {decades.map((d) => <span class="ruler__tick" style={`left:${(d / (L1 - L0)) * 100}%`}></span>)}
+        <span class="ruler__gap" style={`left:${lx(landauer)};width:calc(${lx(flop)} - ${lx(landauer)})`}></span>
+        <span class="ruler__mark" style={`left:${lx(landauer)}`}><span class="ruler__lab ruler__lab--up t-mono">Landauer, <Num k="energy.landauer_comparison.temperature_K" u="K" />: <Num k="energy.landauer_comparison.landauer_limit_J_per_bit" /> J</span></span>
+        <span class="ruler__mark ruler__mark--cpu" style={`left:${lx(flop)}`}><span class="ruler__lab t-mono">This CPU per operation: <Num k="energy.landauer_comparison.cpu_energy_per_flop_J" /> J</span></span>
+      </div>
+      <p class="ruler__big t-mono"><Num k="energy.landauer_comparison.orders_of_magnitude_above_landauer" /> <span class="ruler__unit">orders of magnitude apart</span></p>
+      <p class="note">Logarithmic scale, one tick per factor of ten. CPU energy per operation is the rated power divided by the peak rate of <Num k="energy.landauer_comparison.cpu_peak_flops_per_second" /> operations per second. Note: <Num k="energy.landauer_comparison.note" />.</p>
+    </div>
+  </section>
+
+  <section class="psec wrap honest">
+    <p class="t-label honest__label">Honest caveats · the inputs</p>
+    <div class="dtable-wrap" data-fade>
+      <table class="dtable">
+        <caption>Every assumption behind the cost numbers.</caption>
+        <thead><tr><th scope="col">Assumption</th><th scope="col" class="n">Value</th><th scope="col">Source</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Processor rated power</th><td class="n"><Num k="energy.assumptions.cpu_tdp_W.value" u="W" /></td><td><Num k="energy.assumptions.cpu_tdp_W.source" />. <Num k="energy.assumptions.cpu_tdp_W.note" />.</td></tr>
+          <tr><th scope="row">Electricity tariff</th><td class="n"><Num k="energy.assumptions.electricity_tariff_INR_per_kWh.value" u="per kWh" /></td><td><Num k="energy.assumptions.electricity_tariff_INR_per_kWh.source" /> <SecondaryTag k="energy.assumptions.electricity_tariff_INR_per_kWh.status" /></td></tr>
+          <tr><th scope="row">Grid emission factor</th><td class="n"><Num k="energy.assumptions.grid_emission_factor_kgCO2_per_kWh.value" u="kg CO₂/kWh" /></td><td><Num k="energy.assumptions.grid_emission_factor_kgCO2_per_kWh.source" /></td></tr>
+          <tr><th scope="row">Peak operations per cycle per core</th><td class="n"><Num k="energy.assumptions.peak_double_precision_flops_per_cycle_per_core.value" /></td><td><Num k="energy.assumptions.peak_double_precision_flops_per_cycle_per_core.source" />. <Num k="energy.assumptions.peak_double_precision_flops_per_cycle_per_core.note" />.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</PartLayout>
+
+<style>
+  .counters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--gap);
+    margin-bottom: 20px;
+  }
+  .counter p {
+    margin: 0;
+  }
+  .counter .t-label {
+    color: var(--c-muted);
+    margin-bottom: 10px;
+  }
+  .counter__n {
+    font-size: clamp(2rem, 4.2vw, 4.4rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .counter__n :global(.unit) {
+    font-size: 0.4em;
+    color: var(--c-muted);
+  }
+  .split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--gap);
+    margin-bottom: 20px;
+  }
+  .split__side p {
+    margin: 0 0 12px;
+  }
+  .split__n {
+    font-size: clamp(3rem, 7vw, 7rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .split__n .unit {
+    font-size: 0.3em;
+    letter-spacing: 0;
+    opacity: 0.85;
+  }
+  .split__sub {
+    font-size: 15px;
+    opacity: 0.85;
+  }
+  .split__range {
+    color: inherit;
+    opacity: 0.85;
+  }
+  .ruler__track {
+    position: relative;
+    height: 2px;
+    background: var(--c-black);
+    margin: 70px 0 70px;
+  }
+  .ruler__tick {
+    position: absolute;
+    top: -6px;
+    width: 1px;
+    height: 14px;
+    background: var(--c-black);
+  }
+  .ruler__gap {
+    position: absolute;
+    top: -3px;
+    height: 8px;
+    background: var(--c-red);
+    border-radius: 4px;
+  }
+  .ruler__mark {
+    position: absolute;
+    top: -9px;
+    width: 20px;
+    height: 20px;
+    margin-left: -10px;
+    border-radius: 50%;
+    background: var(--c-blue);
+  }
+  .ruler__mark--cpu {
+    background: var(--c-black);
+  }
+  .ruler__lab {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-60%);
+    white-space: nowrap;
+    font-size: 13px;
+  }
+  .ruler__lab--up {
+    top: auto;
+    bottom: 30px;
+    transform: translateX(-20%);
+  }
+  .ruler__big {
+    margin: 0 0 12px;
+    font-size: clamp(2.4rem, 5vw, 5rem);
+    line-height: 1;
+    color: var(--c-red-ink);
+  }
+  .ruler__unit {
+    font-family: var(--font-sans);
+    font-size: 18px;
+    color: var(--c-black);
+  }
+  @media (max-width: 760px) {
+    .counters {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .split {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .ruler__lab {
+      white-space: normal;
+      width: 44vw;
+    }
+    .ruler__mark--cpu .ruler__lab {
+      transform: translateX(-92%);
+    }
+    .ruler__lab--up {
+      transform: translateX(-8%);
+    }
+  }
+</style>

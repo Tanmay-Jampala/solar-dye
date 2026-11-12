@@ -953,3 +953,92 @@ def run_energy():
     figures.fig16_time_per_molecule(per_method, hf_seconds, b3lyp_seconds, qm9_size_seconds, model.MODEL_LABELS)
     figures.fig17_extrapolation(extrapolation, project_total, all_quantum_seconds, training_seconds)
     return results_io.get_value("energy")
+
+
+# ---------------------------------------------------------------------------
+# Web export -- data the website needs that no other part writes
+# ---------------------------------------------------------------------------
+
+WEB_POINTS_FILE = "web_qm9_points.json"
+
+# How far each QM9 row gets through the screening funnel (furthest stage reached).
+FUNNEL_STAGES = ["cleaned QM9", "pass dye-likeness filter", "predicted gap below shortlist threshold",
+                 "top candidates", "verified with B3LYP"]
+
+
+def funnel_stage_per_row(qm9_table, predicted_gaps, target_gap_eV):
+    """
+    Furthest funnel stage reached by every QM9 row (0..4), using exactly the ranking of run_model.
+
+    model.rank_candidates drops its index; here the same filter, stable sort and de-duplication
+    are repeated with the row index kept, so a duplicate SMILES counts once, at its best row.
+    """
+    table = qm9_table.assign(predicted_gap_eV=predicted_gaps,
+                             distance_from_target_eV=np.abs(predicted_gaps - target_gap_eV))
+    ranked = (table[table["passes_dye_filter"]].sort_values("distance_from_target_eV", kind="stable")
+              .drop_duplicates("smiles", keep="first"))
+    stage = np.zeros(len(qm9_table), dtype=int)
+    stage[qm9_table["passes_dye_filter"].to_numpy()] = 1
+    stage[ranked.index[ranked["predicted_gap_eV"] < SHORTLIST_MAX_GAP_EV]] = 2
+    stage[ranked.index[:N_TOP_CANDIDATES]] = 3
+    stage[ranked.index[:N_DFT_VERIFIED]] = 4
+    return stage
+
+
+def run_web_export(bundle):
+    """
+    Write what the website needs and no other part provides:
+
+    * results.json `web.predictor_presets`: the eleven descriptors of the Part 2 molecules and the
+      three DFT-verified candidates, their reference gaps, and the ridge prediction computed here in
+      Python (the browser's ridge implementation is tested against it).
+    * results/web_qm9_points.json: every QM9 row's gap and furthest funnel stage, used only to draw
+      the screening tunnel. Gaps there are rounded to 3 decimals (meV) to keep the file small.
+    """
+    import json
+
+    from src import model
+    from src.constants import RESULTS_JSON
+    from src.descriptors import DESCRIPTOR_NAMES, descriptor_table
+
+    qm9, qm9_table, _, _ = load_descriptor_tables()
+    best = model.best_model_kind(bundle)
+    target_gap = results_io.get_value("sq.optimum_gap_eV")
+
+    # --- per-row funnel stage --------------------------------------------------------------
+    stage = funnel_stage_per_row(qm9_table, model.predict(bundle, best, qm9_table), target_gap)
+    points_path = RESULTS_JSON.parent / WEB_POINTS_FILE
+    with open(points_path, "w", encoding="utf-8") as handle:
+        json.dump({"description": "QM9 rows in cleaned order: B3LYP gap (eV, rounded to 3 decimals) and the "
+                                  "furthest screening-funnel stage reached (index into stages)",
+                   "stages": FUNNEL_STAGES,
+                   "gap_eV": [round(float(value), 3) for value in qm9["gap_eV"]],
+                   "stage": stage.tolist()}, handle, separators=(",", ":"))
+    funnel_counts = [item["count"] for item in results_io.get_value("model.screening.funnel")]
+    stage_counts = [int((stage >= level).sum()) for level in range(len(FUNNEL_STAGES))]
+    results_io.record_check("web tunnel: rows reaching each funnel stage match the funnel counts",
+                            funnel_counts, stage_counts, stage_counts == funnel_counts)
+
+    # --- predictor presets ------------------------------------------------------------------
+    molecules = results_io.get_value("quantum.molecules")
+    candidates = results_io.get_value("model.top_candidates")[:N_DFT_VERIFIED]
+    entries = ([{"name": m["name"], "smiles": m["smiles"], "kind": "Part 2 molecule",
+                 "reference_gap_eV": m["B3LYP"]["gap_eV"],
+                 "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 2)"} for m in molecules]
+               + [{"name": f"screen rank {c['rank']}", "smiles": c["smiles"], "kind": "screening candidate",
+                   "reference_gap_eV": c["b3lyp_6_31Gs_gap_eV"],
+                   "reference": "our B3LYP/6-31G* HOMO-LUMO gap (Part 5 verification)",
+                   "qm9_gap_eV": c["qm9_gap_eV"]} for c in candidates])
+    table = descriptor_table([entry["smiles"] for entry in entries])
+    ridge = model.predict(bundle, "ridge", table)
+    for entry, (_, row), prediction in zip(entries, table.iterrows(), ridge):
+        entry["descriptors"] = {name: float(row[name]) for name in DESCRIPTOR_NAMES}
+        entry["ridge_predicted_gap_eV"] = float(prediction)
+    results_io.set_value("web", {
+        "feature_order": DESCRIPTOR_NAMES,
+        "predictor_presets": entries,
+        "qm9_points_file": f"results/{WEB_POINTS_FILE}",
+    })
+    results_io.record_check("web presets: ridge prediction is finite for every preset", len(entries),
+                            int(np.isfinite(ridge).sum()), bool(np.isfinite(ridge).all()))
+    return entries

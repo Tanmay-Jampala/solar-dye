@@ -1,0 +1,56 @@
+---
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Preloader from '../components/Preloader.astro';
+import { url } from '../lib/site';
+import generalSans400 from '../assets/fonts/GeneralSans-Regular.woff2?url';
+import generalSans500 from '../assets/fonts/GeneralSans-Medium.woff2?url';
+
+interface Props {
+  title: string;
+  description: string;
+  back?: boolean;
+  preloader?: boolean;
+}
+const { title, description, back = false, preloader = true } = Astro.props;
+const current = Astro.url.pathname;
+---
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content="Tanmay Jampala" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={url('og.png')} />
+    <meta name="theme-color" content="#f0f1fa" />
+    <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+    <link rel="preload" href={generalSans400} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={generalSans500} as="font" type="font/woff2" crossorigin />
+    <script is:inline define:vars={{ preloader }}>
+      document.documentElement.classList.add('js');
+      if (preloader && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('preload');
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Preloader />
+    <Header current={current} back={back} />
+    <main id="main">
+      <slot />
+    </main>
+    <slot name="after" />
+    <script>
+      import { boot } from '../scripts/app';
+      boot();
+    </script>
+  </body>
+</html>

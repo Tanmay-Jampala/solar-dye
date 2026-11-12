@@ -1,0 +1,60 @@
+---
+// Shared layout of the eight part pages: back button, offset title, tags, the question, a fact strip
+// of bound numbers, then the page's own sections, the footer and the next-page panel.
+import '../styles/part.css';
+import Layout from './Layout.astro';
+import Footer from '../components/Footer.astro';
+import NextPanel from '../components/NextPanel.astro';
+import Num from '../components/Num.astro';
+import SecondaryTag from '../components/SecondaryTag.astro';
+import { PARTS, partUrl, url, type PartPage } from '../lib/site';
+
+export interface Fact {
+  k: string;
+  label: string;
+  u?: string;
+  rule?: string;
+  value?: number;
+  derived?: 'hoursFromSeconds' | 'minutesFromSeconds' | 'gigahertz' | 'wavelengthFromEv';
+  /** Status key of a secondary-source value this fact rests on: shows the flag beside it. */
+  secondary?: string;
+}
+interface Props {
+  part: PartPage;
+  question: string;
+  description: string;
+  facts: Fact[];
+}
+const { part, question, description, facts } = Astro.props;
+const next = PARTS[part.index + 1];
+const nextHref = next ? partUrl(next) : url('checks/');
+const nextLabel = next ? `PART ${next.index}` : 'Checks & data';
+const nextTitle = next ? next.title : 'Checks';
+---
+<Layout title={`${part.title} · Solar Dye`} description={description} back preloader={false}>
+  <article class="part" aria-labelledby="part-h">
+    <header class="part__head wrap">
+      <p class="t-label part__kicker" data-fade>PART {part.index}</p>
+      <h1 id="part-h" class="t-display t-display--l t-offset" data-reveal>
+        <span class="line">{part.titleLines[0]}</span>
+        <span class="line">{part.titleLines[1]}</span>
+      </h1>
+      <div class="grid part__intro">
+        <p class="t-label part__tags" data-fade>{part.tags.join(' • ')}</p>
+        <p class="part__q" data-reveal>{question}</p>
+      </div>
+      <dl class="facts">
+        {facts.map((f) => (
+          <div class="facts__item" data-fade>
+            <dt class="t-label">{f.label}</dt>
+            <dd class="facts__n t-mono"><Num k={f.k} u={f.u} rule={f.rule} value={f.value} derived={f.derived} /></dd>
+            {f.secondary && <dd class="facts__tag"><SecondaryTag k={f.secondary} /></dd>}
+          </div>
+        ))}
+      </dl>
+    </header>
+    <slot />
+  </article>
+  <Footer />
+  <NextPanel slot="after" href={nextHref} label={nextLabel} title={nextTitle} />
+</Layout>

@@ -1,0 +1,49 @@
+---
+import PartLayout from '../../layouts/PartLayout.astro';
+import Num from '../../components/Num.astro';
+import Figure from '../../components/Figure.astro';
+import Ceiling from '../../components/home/Ceiling.astro';
+import { PARTS } from '../../lib/site';
+import { get } from '../../lib/data';
+import { formatText } from '../../lib/format';
+
+const part = PARTS[1];
+---
+<PartLayout
+  part={part}
+  question="What is the best band gap a single-junction cell could have under real sunlight?"
+  description="Part 1 of Solar Dye: the Shockley–Queisser detailed-balance limit under AM1.5G sunlight, with an interactive efficiency curve."
+  facts={[
+    { k: 'sq.optimum_gap_eV', label: 'Optimum band gap', u: 'eV' },
+    { k: 'sq.optimum_efficiency', label: 'Highest possible efficiency' },
+    { k: 'sq.secondary_peak.gap_eV', label: 'Second peak', u: 'eV' },
+  ]}
+>
+  <section class="psec wrap cols prose">
+    <div>
+      <h2 class="t-label psec__label">What we did</h2>
+      <p data-reveal>Detailed balance: every photon above the gap makes one electron, every photon below it is lost, and the cell itself glows like a body at <Num k="sq.cell_temperature_K" u="K" />. Integrating that against the measured AM1.5G spectrum, gap by gap in steps of <Num k="sq.gap_grid_step_eV" u="eV" />, gives the most power any single-junction cell can deliver.</p>
+    </div>
+    <div>
+      <h2 class="t-label psec__label">What we found</h2>
+      <p data-reveal>The best gap is <Num k="sq.optimum_gap_eV" u="eV" />, at <Num k="sq.optimum_efficiency" />. A finer search puts the peak at <Num k="sq.refined_optimum_gap_eV" u="eV" />. That agrees with the published value (<Num k="sq.reference" />).</p>
+      <p data-reveal>The curve is not smooth: water vapour cuts a band out of real sunlight, which leaves a second peak at <Num k="sq.secondary_peak.gap_eV" u="eV" /> (<Num k="sq.secondary_peak.cause" />).</p>
+    </div>
+  </section>
+
+  <div class="psec p1-chart">
+    <Ceiling />
+  </div>
+
+  <section class="psec wrap" data-fade>
+    <Figure name="fig01_sq_efficiency" alt={`Efficiency limit against band gap with its maximum of ${formatText('sq.optimum_efficiency', get('sq.optimum_efficiency'))} at ${formatText('sq.optimum_gap_eV', get('sq.optimum_gap_eV'), 'eV')}.`}>
+      The notebook's own figure of the same curve. Its peak is the <Num k="model.screening.target_gap_eV" u="eV" /> target used everywhere else on this site.
+    </Figure>
+  </section>
+</PartLayout>
+
+<style>
+  .p1-chart :global(.ceil) {
+    padding-top: 0;
+  }
+</style>

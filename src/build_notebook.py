@@ -246,6 +246,15 @@ print(f"Laptop, per FLOP at peak : {l['cpu_energy_per_flop_J']:.3e} J  "
 show("fig16_time_per_molecule", 760)
 show("fig17_extrapolation", 900)"""),
 
+    ("md", """## Web export
+Data the project website needs that no part above writes: the eleven descriptors (and the ridge prediction,
+computed here in Python) for the Part 2 molecules and the three verified candidates, so the browser predictor can
+be tested against Python, and every QM9 row's gap and furthest screening-funnel stage, used only to draw the
+screening tunnel (`results/web_qm9_points.json`)."""),
+    ("code", """presets = pipeline.run_web_export(bundle)
+for p in presets:
+    print(f"{p['name']:<22} reference {p['reference_gap_eV']:6.3f} eV   ridge {p['ridge_predicted_gap_eV']:6.3f} eV")"""),
+
     ("md", """## Validation
 Every check recorded during the run, and a NaN scan of everything written to `results.json`. If any check fails,
 the cell below raises an error, so a failure cannot slip by unnoticed."""),

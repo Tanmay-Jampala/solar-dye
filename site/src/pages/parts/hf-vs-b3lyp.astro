@@ -1,0 +1,254 @@
+---
+import PartLayout from '../../layouts/PartLayout.astro';
+import Num from '../../components/Num.astro';
+import Count from '../../components/Count.astro';
+import { countWord } from '../../lib/words';
+import Figure from '../../components/Figure.astro';
+import SecondaryTag from '../../components/SecondaryTag.astro';
+import { PARTS } from '../../lib/site';
+import { get } from '../../lib/data';
+
+const part = PARTS[2];
+const mols: { name: string; group: string; rings: number; HF: { gap_eV: number }; B3LYP: { gap_eV: number }; reference: Record<string, unknown> }[] = get('quantum.molecules');
+const QM9REF = 'qm9_b3lyp_6-31G(2df,p)_gap_eV';
+const lit = ['thiophene', 'bithiophene'];
+const pushPull = ['4-nitroaniline', '4-aminobenzonitrile'];
+
+// Ladder (layout only): bar length proportional to the B3LYP gap, for the two oligomer ladders.
+const ladders = ['phenyl ladder', 'thiophene ladder'].map((g) => ({ g, rows: mols.map((m, i) => ({ m, i })).filter(({ m }) => m.group === g) }));
+const maxGap = Math.max(...mols.map((m) => m.HF.gap_eV));
+---
+<PartLayout
+  part={part}
+  question="How much does the method change the band gap, and which one should we trust?"
+  description={`Part 2 of Solar Dye: Hartree–Fock and B3LYP band gaps for ${countWord('quantum.molecules')} molecules computed on a laptop, compared with experiment.`}
+  facts={[
+    { k: 'quantum.molecules', label: 'Molecules, optimised twice', value: mols.length, rule: 'count.molecules' },
+    { k: 'quantum.findings.b3lyp_error_vs_experiment_eV.thiophene', label: 'B3LYP too high for thiophene by', u: 'eV', secondary: 'quantum.literature_optical_gaps.thiophene.status' },
+    { k: 'quantum.push_pull.4-nitroaniline.charge_transfer_shift_A', label: 'Push–pull charge shift, 4-nitroaniline', u: 'Å' },
+  ]}
+>
+  <section class="psec wrap cols prose">
+    <div>
+      <h2 class="t-label psec__label">What we did</h2>
+      <p data-reveal><Count k="quantum.molecules" cap /> molecules, from benzene to a three-ring thiophene chain, <Count k="quantum.molecules" where="group=push-pull" /> push–pull dyes and <Count k="quantum.molecules" where="group=dye core" /> dye cores. Each was built from its SMILES, pre-relaxed with a force field, then optimised with Hartree–Fock and with B3LYP in the <Num k="quantum.basis" /> basis, all on this laptop (<Num k="quantum.hardware" />).</p>
+    </div>
+    <div>
+      <h2 class="t-label psec__label">What we found</h2>
+      <p data-reveal>Hartree–Fock gaps are far too large: for benzene it is <Num k="quantum.molecules[0].gap_difference_HF_minus_B3LYP_eV" u="eV" /> above B3LYP. B3LYP lands close to QM9's own value for the molecules QM9 contains. Both methods agree on the trend: the longer the conjugated chain, the smaller the gap.</p>
+    </div>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">The <Count k="quantum.molecules" /> molecules · click a row to view its B3LYP geometry</h2>
+    <div class="p2-grid">
+      <div class="p2-viewer card card--dark" data-viewer aria-label="Rotatable 3D view of the selected molecule" role="img">
+        <p class="p2-viewer__name t-mono" data-viewer-name aria-live="polite"></p>
+        <p class="p2-viewer__hint t-label">Drag to rotate</p>
+        <p class="p2-viewer__fallback t-small">The 3D viewer needs WebGL; the table has every number.</p>
+      </div>
+      <div class="dtable-wrap" data-fade>
+        <table class="dtable" data-moltable>
+          <caption>HOMO–LUMO gaps from our optimised geometries.</caption>
+          <thead>
+            <tr><th scope="col">Molecule</th><th scope="col">Group</th><th scope="col" class="n">HF <span class="u">(eV)</span></th><th scope="col" class="n">B3LYP <span class="u">(eV)</span></th><th scope="col" class="n">HF − B3LYP <span class="u">(eV)</span></th><th scope="col" class="n">QM9 <span class="u">(eV)</span></th></tr>
+          </thead>
+          <tbody>
+            {mols.map((m, i) => (
+              <tr data-row={i} data-mol={m.name} aria-selected="false">
+                <th scope="row"><Num k={`quantum.molecules[${i}].name`} /></th>
+                <td><Num k={`quantum.molecules[${i}].group`} /></td>
+                <td class="n"><Num k={`quantum.molecules[${i}].HF.gap_eV`} /></td>
+                <td class="n"><Num k={`quantum.molecules[${i}].B3LYP.gap_eV`} /></td>
+                <td class="n"><Num k={`quantum.molecules[${i}].gap_difference_HF_minus_B3LYP_eV`} /></td>
+                <td class="n">{QM9REF in m.reference ? <Num k={`quantum.molecules[${i}].reference.${QM9REF}`} /> : <span class="note">not in QM9</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">The ladder · gaps shrink as the chain grows</h2>
+    <div class="cols">
+      {ladders.map(({ g, rows }) => (
+        <div class="card" data-fade>
+          <p class="t-label">{g}</p>
+          {rows.map(({ m, i }) => (
+            <div class="rung">
+              <span class="rung__name"><Num k={`quantum.molecules[${i}].name`} /></span>
+              <span class="rung__bars">
+                <span class="rung__bar rung__bar--hf" style={`width:${((m.HF.gap_eV / maxGap) * 100).toFixed(1)}%`}></span>
+                <span class="rung__bar" style={`width:${((m.B3LYP.gap_eV / maxGap) * 100).toFixed(1)}%`}></span>
+              </span>
+              <span class="rung__v t-mono"><Num k={`quantum.molecules[${i}].B3LYP.gap_eV`} u="eV" /></span>
+            </div>
+          ))}
+          <p class="note">Dark bar: B3LYP gap. Pale bar: Hartree–Fock gap.</p>
+        </div>
+      ))}
+    </div>
+    <div class="psec" data-fade>
+      <Figure name="fig03_gap_vs_conjugation" alt="Band gap against conjugation length for the phenyl and thiophene series, Hartree–Fock and B3LYP.">
+        The same trend from the notebook: both methods agree that conjugation narrows the gap; they disagree about by how much.
+      </Figure>
+    </div>
+  </section>
+
+  <section class="psec wrap honest">
+    <p class="t-label honest__label">Honest negative · my prediction was wrong</p>
+    <h2 class="psec__h">I expected B3LYP to underestimate the optical gap. It overestimates it.</h2>
+    <div class="dtable-wrap" data-fade>
+      <table class="dtable">
+        <caption>Measured optical gaps against our HOMO–LUMO gaps.</caption>
+        <thead><tr><th scope="col">Molecule</th><th scope="col" class="n">Measured <span class="u">(eV)</span></th><th scope="col">Solvent</th><th scope="col" class="n">B3LYP error <span class="u">(eV)</span></th><th scope="col" class="n">HF error <span class="u">(eV)</span></th><th scope="col">Source</th></tr></thead>
+        <tbody>
+          {lit.map((n) => (
+            <tr>
+              <th scope="row">{n}</th>
+              <td class="n"><Num k={`quantum.literature_optical_gaps.${n}.gap_eV`} /></td>
+              <td><Num k={`quantum.literature_optical_gaps.${n}.solvent`} /></td>
+              <td class="n is-red">+<Num k={`quantum.findings.b3lyp_error_vs_experiment_eV.${n}`} /></td>
+              <td class="n">+<Num k={`quantum.findings.hf_error_vs_experiment_eV.${n}`} /></td>
+              <td><Num k={`quantum.literature_optical_gaps.${n}.source`} /> <SecondaryTag k={`quantum.literature_optical_gaps.${n}.status`} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="prose-note" data-fade><Num k="quantum.findings.note" /></p>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">Push–pull · where the electron goes</h2>
+    <div class="cols">
+      {pushPull.map((n) => (
+        <div class="card" data-fade>
+          <p class="t-label">{n}</p>
+          <dl class="pp">
+            <div><dt>HOMO centroid, donor → acceptor</dt><dd class="t-mono"><Num k={`quantum.push_pull.${n}.homo_centroid_fraction`} /></dd></div>
+            <div><dt>LUMO centroid</dt><dd class="t-mono"><Num k={`quantum.push_pull.${n}.lumo_centroid_fraction`} /></dd></div>
+            <div><dt>Charge-transfer shift</dt><dd class="t-mono"><Num k={`quantum.push_pull.${n}.charge_transfer_shift_A`} u="Å" /></dd></div>
+            <div><dt>Donor–acceptor distance</dt><dd class="t-mono"><Num k={`quantum.push_pull.${n}.donor_acceptor_distance_A`} u="Å" /></dd></div>
+          </dl>
+        </div>
+      ))}
+    </div>
+    <p class="note" data-fade>Centroid fraction: where the orbital's weight sits along the line from the donor atom to the acceptor atom: zero at the donor, one at the acceptor. Exciting an electron from HOMO to LUMO moves it toward the acceptor.</p>
+    <div class="psec" data-fade>
+      <Figure name="fig05_orbitals" alt={`HOMO and LUMO isosurfaces of the ${countWord('quantum.molecules', { where: 'group=push-pull' })} push–pull molecules.`}>
+        HOMO and LUMO of the push–pull molecules: the LUMO sits further toward the acceptor end.
+      </Figure>
+    </div>
+    <div class="psec" data-fade>
+      <Figure name="fig04_mmff_vs_quantum" alt="Key bond lengths from the force field compared with Hartree–Fock and B3LYP.">
+        Key bond lengths: the cheap force field against the two quantum methods.
+      </Figure>
+    </div>
+  </section>
+</PartLayout>
+
+<style>
+  .p2-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--gap);
+    align-items: start;
+  }
+  .p2-viewer {
+    position: relative;
+    aspect-ratio: 1;
+    padding: 0;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+  }
+  .p2-viewer :global(canvas) {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .p2-viewer__name,
+  .p2-viewer__hint {
+    position: absolute;
+    left: 20px;
+    margin: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .p2-viewer__name {
+    top: 18px;
+    font-size: 16px;
+  }
+  .p2-viewer__hint {
+    bottom: 16px;
+    color: rgba(255, 255, 255, 0.5);
+  }
+  .p2-viewer__fallback {
+    position: absolute;
+    inset: auto 20px 50% 20px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .p2-viewer:global(.is-live) .p2-viewer__fallback {
+    display: none;
+  }
+  .rung {
+    display: grid;
+    grid-template-columns: 12ch minmax(0, 1fr) 9ch;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 14px;
+  }
+  .rung__bars {
+    position: relative;
+    height: 16px;
+  }
+  .rung__bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: 3px;
+    background: var(--c-black);
+  }
+  .rung__bar--hf {
+    background: var(--c-pill);
+  }
+  .rung__v {
+    text-align: right;
+  }
+  .prose-note {
+    margin: 24px 0 0;
+    max-width: 75ch;
+    font-size: 17px;
+    line-height: 1.45;
+  }
+  .prose-note :global(.num) {
+    white-space: normal;
+  }
+  .pp {
+    margin: 16px 0 0;
+    display: grid;
+    gap: 12px;
+  }
+  .pp div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid var(--c-line);
+    padding-bottom: 8px;
+  }
+  .pp dt {
+    color: var(--c-muted);
+    font-size: 14px;
+  }
+  .pp dd {
+    margin: 0;
+  }
+  @media (max-width: 900px) {
+    .p2-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

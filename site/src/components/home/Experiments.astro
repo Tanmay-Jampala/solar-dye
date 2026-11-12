@@ -1,0 +1,169 @@
+---
+// "The Experiments": eight cards, one per part, each with its figure, tags, title and one key number.
+import Num from '../Num.astro';
+import Roll from '../Roll.astro';
+import SecondaryTag from '../SecondaryTag.astro';
+import { PARTS, partUrl, url } from '../../lib/site';
+
+const media: Record<number, string | null> = {
+  0: null, // typographic card
+  1: 'fig01_sq_efficiency',
+  2: 'fig03_gap_vs_conjugation',
+  3: 'fig06_torsion_pes',
+  4: 'fig10_correlation_heatmap',
+  5: 'fig13_screening_funnel',
+  6: 'fig14_brus',
+  7: 'fig16_time_per_molecule',
+};
+const alts: Record<number, string> = {
+  1: 'Shockley–Queisser efficiency limit against band gap.',
+  2: 'HOMO–LUMO gap falling with conjugation length at HF and B3LYP.',
+  3: 'Relative energy of bithiophene against the S–C–C–S dihedral.',
+  4: 'Correlation of the eleven descriptors with each other and with the gap.',
+  5: 'The screening funnel from all of QM9 down to the DFT-verified candidates.',
+  6: 'Brus-equation gap against radius for CdSe and PbS.',
+  7: 'Measured wall time per molecule for each method.',
+};
+---
+<section id="experiments" class="exp wrap" aria-labelledby="exp-h">
+  <div class="exp__head">
+    <h2 id="exp-h" class="t-display" data-reveal>The Experiments</h2>
+    <p class="t-label exp__blurb" data-fade>Eight steps from a thermodynamic ceiling to the cost of asking the question.</p>
+  </div>
+
+  <ul class="exp__grid">
+    {PARTS.map((part) => (
+      <li class="card" data-fade>
+        <a class="card__link roll-host" href={partUrl(part)}>
+          <div class="card__media">
+            {media[part.index] ? (
+              <img src={url(`figures/${media[part.index]}.svg`)} alt={alts[part.index]} loading="lazy" decoding="async" />
+            ) : (
+              <div class="card__type">
+                <span class="card__type-num t-mono"><Num k="data.qm9.rows_clean" /></span>
+                <span class="t-label">QM9 molecules, cleaned</span>
+              </div>
+            )}
+          </div>
+          <p class="card__tags t-label">{['Part ' + part.index, ...part.tags].join(' • ')}</p>
+          <h3 class="card__title"><span class="card__arrow" aria-hidden="true">→</span><Roll text={part.title} /></h3>
+        </a>
+        <p class="card__key t-mono">
+          {part.index === 0 && <>From <Num k="data.qm9.rows_raw" /> raw rows; <Num k="data.hopv.rows_clean" /> real dyes from HOPV15.</>}
+          {part.index === 1 && <>At most <Num k="sq.optimum_efficiency_percent" />, at a gap of <Num k="sq.optimum_gap_eV" u="eV" />.</>}
+          {part.index === 2 && <>My prediction was wrong: B3LYP overshot the optical gap of thiophene by <Num k="quantum.findings.b3lyp_error_vs_experiment_eV.thiophene" u="eV" />. <SecondaryTag k="quantum.literature_optical_gaps.thiophene.status" /></>}
+          {part.index === 3 && <>Barrier to planarity: <Num k="torsion.barrier_to_planarity_over_kT" /> kT.</>}
+          {part.index === 4 && <><Num k="descriptors.qm9.dye_filter_pass_count" /> QM9 molecules pass the dye filter.</>}
+          {part.index === 5 && <>Best test MAE <Num k="model.metrics.gradient_boosting.test.MAE_eV" u="eV" />, and badly wrong on real dyes.</>}
+          {part.index === 6 && <>PbS at the target: <Num k="quantum_dots.radius_at_optimum_nm.PbS.brus_nm" u="nm" /> by Brus, <Num k="quantum_dots.radius_at_optimum_nm.PbS.experimental_sizing_curve_nm" u="nm" /> by experiment. CdSe cannot get there.</>}
+          {part.index === 7 && <><Num k="energy.full_dataset_extrapolation.b3lyp_all_qm9.mean.years" /> years of B3LYP to do all of QM9 on this laptop.</>}
+        </p>
+      </li>
+    ))}
+  </ul>
+
+  <div class="exp__more" data-fade>
+    <a class="pill pill--white roll-host" href={url('notebook/')}><span class="pill__dot" aria-hidden="true"></span><Roll text="READ THE NOTEBOOK" /></a>
+  </div>
+</section>
+
+<style>
+  .exp {
+    padding-top: clamp(100px, 12vw, 200px);
+  }
+  .exp__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .exp__blurb {
+    max-width: 34ch;
+    text-align: right;
+    margin: 0 0 0.6em;
+  }
+  .exp__grid {
+    list-style: none;
+    margin: clamp(40px, 5vw, 80px) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(40px, 5vw, 80px) var(--gap);
+  }
+  .card__link {
+    display: block;
+  }
+  .card__media {
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--c-white);
+    display: grid;
+    place-items: center;
+  }
+  .card__media img {
+    width: 88%;
+    height: 88%;
+    object-fit: contain;
+    transition: transform 1.4s var(--ease-expo);
+  }
+  .card__link:hover .card__media img,
+  .card__link:focus-visible .card__media img {
+    transform: scale(1.03);
+  }
+  .card__type {
+    display: grid;
+    gap: 14px;
+    justify-items: center;
+    text-align: center;
+  }
+  .card__type-num {
+    font-size: clamp(3rem, 7vw, 7rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .card__tags {
+    margin: 18px 0 6px;
+    color: var(--c-muted);
+  }
+  .card__title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    font-size: clamp(24px, 2.2vw, 32px);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .card__arrow {
+    display: inline-block;
+    width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: width 0.6s var(--ease-expo), opacity 0.4s var(--ease-1);
+  }
+  .card__link:hover .card__arrow,
+  .card__link:focus-visible .card__arrow {
+    width: 1.3em;
+    opacity: 1;
+  }
+  .card__key {
+    margin: 10px 0 0;
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 52ch;
+  }
+  .exp__more {
+    margin-top: clamp(60px, 6vw, 100px);
+    display: flex;
+    justify-content: center;
+  }
+  @media (max-width: 760px) {
+    .exp__grid {
+      grid-template-columns: 1fr;
+    }
+    .exp__blurb {
+      text-align: left;
+    }
+  }
+</style>

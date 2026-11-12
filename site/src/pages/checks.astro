@@ -1,0 +1,227 @@
+---
+// Checks & data: every self-check the pipeline records (name, expected, actual, pass), the data
+// sources and licences, every value flagged as a secondary source, and the software versions.
+import '../styles/part.css';
+import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
+import NextPanel from '../components/NextPanel.astro';
+import Num from '../components/Num.astro';
+import SecondaryTag from '../components/SecondaryTag.astro';
+import { get } from '../lib/data';
+import { url } from '../lib/site';
+
+const checks: { passed: boolean }[] = get('checks');
+const passed = checks.filter((c) => c.passed).length;
+const sources: unknown[] = get('data.sources');
+const env: Record<string, string> = get('environment');
+const flagged = [
+  ['Thiophene optical gap (Part 2)', 'quantum.literature_optical_gaps.thiophene.status'],
+  ['Bithiophene optical gap (Part 2)', 'quantum.literature_optical_gaps.bithiophene.status'],
+  ['CdSe Brus parameters (Part 6)', 'quantum_dots.parameters_used.CdSe.status'],
+  ['PbS Brus parameters (Part 6)', 'quantum_dots.parameters_used.PbS.status'],
+  ['Electricity tariff (Part 7)', 'energy.assumptions.electricity_tariff_INR_per_kWh.status'],
+];
+---
+<Layout title="Checks & Data · Solar Dye" description="Every self-check the Solar Dye pipeline runs, with expected and actual values, plus data sources, licences and software versions." back preloader={false}>
+  <article class="chk">
+    <header class="wrap chk__head">
+      <p class="t-label chk__kicker" data-fade>Checks &amp; data</p>
+      <h1 class="t-display t-display--l t-offset" data-reveal>
+        <span class="line">Every</span>
+        <span class="line">Check</span>
+      </h1>
+      <div class="grid chk__intro">
+        <p class="chk__big t-mono" data-fade><Num k="checks" value={passed} rule="count.passed" />/<Num k="checks" value={checks.length} rule="count.total" /> <span class="chk__big-l">self-checks passed</span></p>
+        <p class="chk__lead" data-reveal>The pipeline asserts these every time it runs; a single failure stops the reproduce command. This page lists them as recorded in the run that built the site (<Num k="generated_at" />, commit <span class="t-mono"><Num k="git_commit" /></span>, random seed <Num k="random_seed" />).</p>
+      </div>
+    </header>
+
+    <section class="psec wrap">
+      <div class="chk__bar">
+        <label class="t-label" for="chk-filter">Filter the checks</label>
+        <input id="chk-filter" class="chk__filter" type="search" autocomplete="off" data-check-filter />
+        <span class="note" data-check-count aria-live="polite"></span>
+      </div>
+      <div class="dtable-wrap">
+        <table class="dtable" data-check-table>
+          <caption>Name, the value expected, the value the run produced, and whether it passed.</caption>
+          <thead><tr><th scope="col" class="n">#</th><th scope="col">Check</th><th scope="col">Expected</th><th scope="col">Actual</th><th scope="col">Result</th></tr></thead>
+          <tbody>
+            {checks.map((c, i) => (
+              <tr>
+                <td class="n"><Num k="checks" value={i + 1} rule="count.row" /></td>
+                <th scope="row"><Num k={`checks[${i}].name`} /></th>
+                <td class="t-mono cell"><Num k={`checks[${i}].expected`} /></td>
+                <td class="t-mono cell"><Num k={`checks[${i}].actual`} /></td>
+                <td class:list={['chk__res', { 'is-red': !c.passed }]}>{c.passed ? '✓ pass' : '✗ fail'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="psec wrap" id="data">
+      <h2 class="t-label psec__label">Data &amp; licences</h2>
+      <div class="dtable-wrap">
+        <table class="dtable">
+          <caption>Every downloaded file. Full checksums are on the Data page.</caption>
+          <thead><tr><th scope="col">File</th><th scope="col">Licence</th><th scope="col">Where from</th></tr></thead>
+          <tbody>
+            {sources.map((_, i) => (
+              <tr>
+                <th scope="row" class="t-mono"><Num k={`data.sources[${i}].file`} /></th>
+                <td><Num k={`data.sources[${i}].licence`} /></td>
+                <td class="t-mono cell"><Num k={`data.sources[${i}].url`} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="note psec-sm"><Num k="data.provenance" /></p>
+    </section>
+
+    <section class="psec wrap">
+      <h2 class="t-label psec__label">Values from secondary sources</h2>
+      <ul class="flags">
+        {flagged.map(([what, k]) => (
+          <li class="flags__item"><span>{what}</span><SecondaryTag k={k} /><span class="note"><Num k={k} /></span></li>
+        ))}
+      </ul>
+      <p class="note">The dye-likeness filter is flagged differently: <Num k="descriptors.dye_filter_status" />.</p>
+    </section>
+
+    <section class="psec wrap">
+      <h2 class="t-label psec__label">Software</h2>
+      <div class="dtable-wrap">
+        <table class="dtable">
+          <tbody>
+            {Object.keys(env).map((k) => (
+              <tr><th scope="row">{k}</th><td class="t-mono"><Num k={`environment.${k}`} /></td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="note psec-sm">Reproduce everything with <span class="t-mono">./py.sh -m src.reproduce</span>, or <a class="link" href={url('notebook/')}>read the notebook</a>.</p>
+    </section>
+  </article>
+  <Footer />
+  <NextPanel slot="after" href={url('/')} label="Back to the start" title="Home" />
+</Layout>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>('[data-check-filter]');
+  const rows = Array.from(document.querySelectorAll<HTMLTableRowElement>('[data-check-table] tbody tr'));
+  const count = document.querySelector<HTMLElement>('[data-check-count]');
+  const update = () => {
+    const q = (input?.value || '').trim().toLowerCase();
+    let shown = 0;
+    rows.forEach((r) => {
+      const hit = !q || r.textContent!.toLowerCase().includes(q);
+      r.hidden = !hit;
+      if (hit) shown++;
+    });
+    if (count) count.textContent = q ? `${shown} of ${rows.length} shown` : '';
+  };
+  input?.addEventListener('input', update);
+</script>
+
+<style>
+  .chk__head {
+    padding-top: calc(var(--header-h) + var(--pad-y) + clamp(40px, 6vw, 100px));
+  }
+  .chk__kicker {
+    color: var(--c-muted);
+    margin: 0 0 18px;
+  }
+  .chk__intro {
+    margin-top: clamp(32px, 4vw, 64px);
+    align-items: end;
+    row-gap: 24px;
+  }
+  .chk__big {
+    grid-column: 1 / span 6;
+    margin: 0;
+    font-size: clamp(3rem, 8vw, 8rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .chk__big-l {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 18px;
+    letter-spacing: 0;
+    color: var(--c-muted);
+    margin-top: 10px;
+  }
+  .chk__lead {
+    grid-column: 8 / span 5;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.45;
+  }
+  .chk__lead :global(.num) {
+    white-space: normal;
+  }
+  .chk__bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .chk__filter {
+    flex: 1 1 260px;
+    max-width: 420px;
+    border: 1px solid var(--c-line);
+    background: var(--c-white);
+    border-radius: 999px;
+    padding: 10px 18px;
+    font: inherit;
+  }
+  .chk__filter:focus-visible {
+    outline: 2px solid var(--c-blue);
+  }
+  .cell {
+    font-size: 13px;
+    word-break: break-word;
+  }
+  .chk__res {
+    white-space: nowrap;
+    color: #0a7a3d;
+  }
+  .flags {
+    list-style: none;
+    margin: 0 0 16px;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  .flags__item {
+    display: grid;
+    grid-template-columns: minmax(0, 18ch) auto minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+    background: var(--c-white);
+    border-radius: 14px;
+    padding: 14px 18px;
+  }
+  .flags__item :global(.num) {
+    white-space: normal;
+  }
+  .psec-sm {
+    margin-top: 18px;
+  }
+  .link {
+    text-decoration: underline;
+  }
+  @media (max-width: 760px) {
+    .chk__big,
+    .chk__lead {
+      grid-column: 1 / -1;
+    }
+    .flags__item {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

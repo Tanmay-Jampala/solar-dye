@@ -1,0 +1,47 @@
+---
+// One of the project's generated figures, shown exactly as generated (white background, no titles).
+// `alt` may contain bound numbers (built with formatText), so it is marked data-bound="alt".
+import fs from 'node:fs';
+import path from 'node:path';
+import { url } from '../lib/site';
+
+interface Props {
+  name: string; // e.g. "fig01_sq_efficiency"
+  alt: string;
+  class?: string;
+  eager?: boolean;
+}
+const { name, alt, class: className, eager = false } = Astro.props;
+// Intrinsic size from the SVG's own viewBox, so the layout reserves the right space.
+const svg = fs.readFileSync(path.resolve(process.cwd(), '..', 'results', 'figures', `${name}.svg`), 'utf-8');
+const box = svg.match(/viewBox="([\d.\s-]+)"/)?.[1].trim().split(/\s+/).map(Number);
+if (!box) throw new Error(`Figure: ${name}.svg has no viewBox`);
+const width = Math.round(box[2]);
+const height = Math.round(box[3]);
+---
+<figure class:list={['fig', className]}>
+  <div class="fig__media">
+    <img src={url(`figures/${name}.svg`)} alt={alt} data-bound="alt" loading={eager ? 'eager' : 'lazy'} decoding="async" width={width} height={height} />
+  </div>
+  {Astro.slots.has('default') && <figcaption class="fig__cap t-small"><slot /></figcaption>}
+</figure>
+
+<style>
+  .fig {
+    margin: 0;
+  }
+  .fig__media {
+    background: var(--c-white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    padding: clamp(12px, 2vw, 32px);
+  }
+  .fig__media img {
+    width: 100%;
+    height: auto;
+  }
+  .fig__cap {
+    margin-top: 12px;
+    max-width: 62ch;
+  }
+</style>

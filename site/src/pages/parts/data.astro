@@ -1,0 +1,94 @@
+---
+import PartLayout from '../../layouts/PartLayout.astro';
+import Num from '../../components/Num.astro';
+import { PARTS } from '../../lib/site';
+import { get } from '../../lib/data';
+
+const part = PARTS[0];
+const sources: unknown[] = get('data.sources');
+const qm9Steps: unknown[] = get('data.qm9.cleaning_steps');
+const hopvSteps: unknown[] = get('data.hopv.cleaning_steps');
+---
+<PartLayout
+  part={part}
+  question="What exactly went into the screen, and can anyone get the same files?"
+  description="Part 0 of Solar Dye: the QM9 and HOPV15 datasets, where they came from, their checksums and how they were cleaned."
+  facts={[
+    { k: 'data.qm9.rows_clean', label: 'QM9 molecules after cleaning' },
+    { k: 'data.hopv.rows_clean', label: 'HOPV15 real dyes' },
+    { k: 'data.hopv.rows_with_experimental_gap', label: 'HOPV15 dyes with a measured gap' },
+  ]}
+>
+  <section class="psec wrap cols prose">
+    <div>
+      <h2 class="t-label psec__label">What we did</h2>
+      <p data-reveal>Two public datasets, downloaded once and fingerprinted. QM9 is the playground: every small organic molecule with up to <Num k="data.qm9.max_heavy_atoms" /> heavy atoms, each with a B3LYP band gap. HOPV15 is the reality check: real organic solar-cell dyes with measured efficiencies.</p>
+      <p data-reveal>Every file is pinned by its SHA-256 checksum, so a rerun either reads exactly the same bytes or stops.</p>
+    </div>
+    <div>
+      <h2 class="t-label psec__label">What we found</h2>
+      <p data-reveal>QM9 started with <Num k="data.qm9.rows_raw" /> rows. Dropping the molecules the original authors flagged as inconsistent left <Num k="data.qm9.rows_clean" />. Their gaps run from <Num k="data.qm9.gap_eV_min" u="eV" /> to <Num k="data.qm9.gap_eV_max" u="eV" />, with a mean of <Num k="data.qm9.gap_eV_mean" u="eV" />: far above the <Num k="model.screening.target_gap_eV" u="eV" /> a solar cell wants.</p>
+      <p data-reveal>All <Num k="data.hopv.rows_clean" /> HOPV15 molecules parsed; <Num k="data.hopv.rows_with_experimental_gap" /> have a measured gap and <Num k="data.hopv.rows_with_pce" /> a measured efficiency.</p>
+    </div>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">Sources and checksums</h2>
+    <div class="dtable-wrap" data-fade>
+      <table class="dtable">
+        <caption>Every downloaded file, with its licence and SHA-256 checksum.</caption>
+        <thead><tr><th scope="col">File</th><th scope="col">What it is</th><th scope="col">Licence</th><th scope="col" class="n">Bytes</th></tr></thead>
+        <tbody>
+          {sources.map((_, i) => (
+            <tr>
+              <th scope="row" class="t-mono"><Num k={`data.sources[${i}].file`} /><br /><span class="note sha"><Num k={`data.sources[${i}].sha256`} /></span></th>
+              <td><Num k={`data.sources[${i}].description`} /></td>
+              <td><Num k={`data.sources[${i}].licence`} /></td>
+              <td class="n"><Num k={`data.sources[${i}].size_bytes`} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="psec wrap cols">
+    {[['QM9', 'data.qm9.cleaning_steps', qm9Steps], ['HOPV15', 'data.hopv.cleaning_steps', hopvSteps]].map(([name, key, steps]) => (
+      <div class="dtable-wrap" data-fade>
+        <table class="dtable">
+          <caption>{name} cleaning, step by step</caption>
+          <thead><tr><th scope="col">Rule</th><th scope="col" class="n">Removed</th><th scope="col" class="n">Left</th></tr></thead>
+          <tbody>
+            {(steps as unknown[]).map((_, i) => (
+              <tr>
+                <td><Num k={`${key}[${i}].rule`} /></td>
+                <td class="n"><Num k={`${key}[${i}].removed`} /></td>
+                <td class="n"><Num k={`${key}[${i}].remaining`} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ))}
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">Provenance, as recorded by the pipeline</h2>
+    <p class="note prov" data-fade><Num k="data.provenance" /></p>
+  </section>
+</PartLayout>
+
+<style>
+  .sha {
+    display: inline-block;
+    max-width: 30ch;
+    word-break: break-all;
+    font-size: 11px;
+  }
+  .prov {
+    max-width: 90ch;
+  }
+  .prov :global(.num) {
+    white-space: normal;
+  }
+</style>

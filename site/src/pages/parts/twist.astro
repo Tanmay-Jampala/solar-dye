@@ -1,0 +1,202 @@
+---
+import PartLayout from '../../layouts/PartLayout.astro';
+import Num from '../../components/Num.astro';
+import Figure from '../../components/Figure.astro';
+import { PARTS } from '../../lib/site';
+import { get } from '../../lib/data';
+
+const part = PARTS[3];
+const scan: { angle_deg: number; energy_eV: number; gap_eV: number; coordinates_A: number[][] }[] = get('torsion.scan');
+const symbols: string[] = get('torsion.symbols');
+const minAngle: number = get('torsion.minimum_angle_deg');
+const minIndex = scan.findIndex((f) => Math.abs(f.angle_deg - minAngle) < 1e-9);
+const last = scan.length - 1;
+const mid = Math.round(last / 2);
+
+// Two small line charts (layout only): x = scan index, y scaled to each series.
+const W = 600, H = 200, PAD = 14;
+const chart = (vals: number[]) => {
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  const x = (i: number) => (i / last) * W;
+  const y = (v: number) => H - PAD - ((v - lo) / (hi - lo)) * (H - 2 * PAD);
+  return { path: vals.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(''), pts: vals.map((v, i) => [x(i), y(v)]) };
+};
+const eChart = chart(scan.map((f) => f.energy_eV));
+const gChart = chart(scan.map((f) => f.gap_eV));
+const data = JSON.stringify({ symbols, frames: scan.map(({ angle_deg, energy_eV, gap_eV, coordinates_A }) => ({ angle_deg, energy_eV, gap_eV, coordinates_A })) });
+---
+<PartLayout
+  part={part}
+  question="Does a two-ring dye stay flat, and does it matter for the gap?"
+  description="Part 3 of Solar Dye: a relaxed B3LYP torsion scan of bithiophene, with an interactive twist slider."
+  facts={[
+    { k: 'torsion.barrier_to_planarity_eV', label: 'Barrier to lie flat' },
+    { k: 'torsion.barrier_to_planarity_over_kT', label: 'Same barrier, in units of kT at room temperature' },
+    { k: 'torsion.gap_span_eV', label: 'Gap change across the twist', u: 'eV' },
+  ]}
+>
+  <section class="psec wrap cols prose">
+    <div>
+      <h2 class="t-label psec__label">What we did</h2>
+      <p data-reveal>Bithiophene, the simplest two-ring dye backbone, twisted about its <Num k="torsion.dihedral" /> dihedral in steps from <Num k="torsion.scan[0].angle_deg" u="°" /> to <Num k={`torsion.scan[${last}].angle_deg`} u="°" />. At every angle everything else relaxed (<Num k="torsion.method" />). The whole scan took <Num k="torsion.total_wall_seconds" derived="hoursFromSeconds" /> on the laptop.</p>
+    </div>
+    <div>
+      <h2 class="t-label psec__label">What we found</h2>
+      <p data-reveal>The lowest energy is at <Num k="torsion.minimum_angle_deg" u="°" />, slightly twisted. Flattening it costs only <Num k="torsion.barrier_to_planarity_eV" />, which is <Num k="torsion.barrier_to_planarity_over_kT" /> kT: at room temperature the molecule flexes freely through planar.</p>
+      <p data-reveal>Twisting it to <Num k="torsion.rotational_barrier_angle_deg" u="°" /> costs <Num k="torsion.rotational_barrier_eV" u="eV" /> and breaks the conjugation between the rings: the gap opens by <Num k="torsion.gap_span_eV" u="eV" />.</p>
+    </div>
+  </section>
+
+  <section class="psec wrap" data-torsion data-json={data}>
+    <h2 class="t-label psec__label">Twist it · every frame is a stored, relaxed geometry</h2>
+    <div class="tw">
+      <div class="tw__viewer card card--dark" data-viewer role="img" aria-label="3D view of bithiophene at the selected dihedral angle">
+        <p class="tw__fallback t-small">The 3D viewer needs WebGL; the readouts and charts still follow the slider.</p>
+      </div>
+      <div class="tw__side">
+        <label class="t-label tw__label" for="tw-slider">Dihedral angle</label>
+        <input id="tw-slider" class="tw__slider" type="range" min="0" max={last} step="1" value={minIndex} data-torsion-slider />
+        <dl class="tw__read">
+          <div><dt class="t-label">Angle</dt><dd class="t-mono" data-t-angle><Num k={`torsion.scan[${minIndex}].angle_deg`} u="°" /></dd></div>
+          <div><dt class="t-label">Energy above the lowest frame</dt><dd class="t-mono" data-t-energy><Num k={`torsion.scan[${minIndex}].energy_eV`} /></dd></div>
+          <div><dt class="t-label">HOMO–LUMO gap</dt><dd class="t-mono" data-t-gap><Num k={`torsion.scan[${minIndex}].gap_eV`} u="eV" /></dd></div>
+        </dl>
+        {[['Energy', eChart, 'energy'], ['Gap', gChart, 'gap']].map(([name, c, cls]) => (
+          <div class="tw__chart">
+            <p class="t-label">{name as string} against angle</p>
+            <div class="tw__plot">
+              <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+                <path d={(c as typeof eChart).path} class={`tw__line tw__line--${cls}`} />
+                {cls === 'energy' && <circle cx={eChart.pts[minIndex][0]} cy={eChart.pts[minIndex][1]} r="6" class="tw__min" />}
+              </svg>
+              <span class="tw__cursor" data-t-cursor style={`left:${(minIndex / last) * 100}%`}></span>
+            </div>
+            <div class="tw__ticks t-mono">
+              <Num k="torsion.scan[0].angle_deg" u="°" /><Num k={`torsion.scan[${mid}].angle_deg`} u="°" /><Num k={`torsion.scan[${last}].angle_deg`} u="°" />
+            </div>
+          </div>
+        ))}
+        <p class="note">The dot marks the lowest-energy frame, <Num k="torsion.minimum_angle_deg" u="°" />. Thermal energy at room temperature is <Num k="torsion.thermal_energy_kT_eV_300K" />.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="psec wrap cols">
+    <div data-fade>
+      <Figure name="fig06_torsion_pes" alt="Relaxed torsion energy profile of bithiophene against the dihedral angle." />
+    </div>
+    <div data-fade>
+      <Figure name="fig07_torsion_gap" alt="HOMO–LUMO gap of bithiophene against the dihedral angle." />
+    </div>
+  </section>
+</PartLayout>
+
+<style>
+  .tw {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    gap: var(--gap);
+    align-items: start;
+  }
+  .tw__viewer {
+    position: relative;
+    aspect-ratio: 1;
+    padding: 0;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+  }
+  .tw__viewer :global(canvas) {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .tw__fallback {
+    position: absolute;
+    inset: auto 20px 50% 20px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .tw__viewer:global(.is-live) .tw__fallback {
+    display: none;
+  }
+  .tw__side {
+    display: grid;
+    gap: 18px;
+  }
+  .tw__label {
+    color: var(--c-muted);
+  }
+  .tw__slider {
+    width: 100%;
+    accent-color: var(--c-blue);
+  }
+  .tw__read {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .tw__read dt {
+    color: var(--c-muted);
+    font-size: 11px;
+  }
+  .tw__read dd {
+    margin: 6px 0 0;
+    font-size: clamp(22px, 2.2vw, 34px);
+  }
+  .tw__read dd :global(.unit) {
+    font-size: 0.5em;
+    color: var(--c-muted);
+  }
+  .tw__chart .t-label {
+    color: var(--c-muted);
+    margin: 0 0 8px;
+  }
+  .tw__plot {
+    position: relative;
+    height: 120px;
+    background: var(--c-white);
+    border-radius: 12px;
+  }
+  .tw__plot svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .tw__line {
+    fill: none;
+    stroke-width: 2.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .tw__line--energy {
+    stroke: var(--c-black);
+  }
+  .tw__line--gap {
+    stroke: var(--c-blue);
+  }
+  .tw__min {
+    fill: var(--c-red);
+  }
+  .tw__cursor {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--c-blue);
+    opacity: 0.5;
+    transition: left 0.3s var(--ease-expo);
+  }
+  .tw__ticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--c-muted);
+    margin-top: 4px;
+  }
+  @media (max-width: 900px) {
+    .tw {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

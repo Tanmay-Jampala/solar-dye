@@ -1,0 +1,171 @@
+---
+import PartLayout from '../../layouts/PartLayout.astro';
+import Num from '../../components/Num.astro';
+import Count from '../../components/Count.astro';
+import { countWord } from '../../lib/words';
+import Figure from '../../components/Figure.astro';
+import { PARTS } from '../../lib/site';
+import { get } from '../../lib/data';
+
+const part = PARTS[4];
+const names: string[] = get('descriptors.names');
+const labels: Record<string, string> = get('descriptors.labels');
+const corr: Record<string, { pearson: number }> = get('descriptors.correlations_with_gap');
+const rules: Record<string, string> = get('descriptors.dye_filter_rules');
+const lipinski: Record<string, string> = get('descriptors.lipinski_rules');
+const pct = (v: number) => `${(Math.abs(v) * 50).toFixed(1)}%`; // half the track per unit of |r|
+---
+<PartLayout
+  part={part}
+  question="Which cheap, countable features of a molecule track its band gap, and which molecules look like dyes at all?"
+  description={`Part 4 of Solar Dye: ${countWord('web.feature_order')} RDKit descriptors, their correlation with the band gap, Lipinski's rule and our own ${countWord('descriptors.dye_filter_rules')}-rule dye-likeness filter.`}
+  facts={[
+    { k: 'descriptors.qm9.lipinski_pass_rate', label: 'QM9 passing Lipinski' },
+    { k: 'descriptors.qm9.dye_filter_pass_rate', label: 'QM9 passing our dye filter' },
+    { k: 'descriptors.hopv.dye_filter_pass_rate', label: 'Real dyes (HOPV15) passing it' },
+  ]}
+>
+  <section class="psec wrap cols prose">
+    <div>
+      <h2 class="t-label psec__label">What we did</h2>
+      <p data-reveal><Count k="web.feature_order" cap /> descriptors per molecule, all computed with RDKit: size, polarity, rings, flexibility, complexity, and one of our own, the size of the largest conjugated system. Then two filters: Lipinski's rule of five, and a <Count k="descriptors.dye_filter_rules" />-rule dye-likeness filter written for this project.</p>
+    </div>
+    <div>
+      <h2 class="t-label psec__label">What we found</h2>
+      <p data-reveal>The conjugated-system size tracks the gap best (Pearson <Num k="descriptors.correlations_with_gap.largest_conjugated_system.pearson" />), with the fraction of sp³ carbons close behind in the other direction (<Num k="descriptors.correlations_with_gap.fraction_sp3.pearson" />). Our filter keeps <Num k="descriptors.qm9.dye_filter_pass_count" /> QM9 molecules and <Num k="descriptors.hopv.dye_filter_pass_count" /> of the <Num k="descriptors.hopv.molecules" /> real dyes.</p>
+    </div>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">The descriptors and how they correlate with the QM9 gap</h2>
+    <div class="card" data-fade>
+      {names.map((n) => (
+        <div class="hbar">
+          <span>{labels[n]}</span>
+          <span class="hbar__track"><span class:list={['hbar__bar', { 'hbar__bar--neg': corr[n].pearson < 0 }]} style={corr[n].pearson < 0 ? `right:50%;width:${pct(corr[n].pearson)}` : `left:50%;width:${pct(corr[n].pearson)}`}></span><span class="mid"></span></span>
+          <span class="hbar__val"><Num k={`descriptors.correlations_with_gap.${n}.pearson`} /></span>
+        </div>
+      ))}
+      <p class="note">Pearson correlation with the B3LYP gap over all QM9 molecules. Red bars: a larger value means a smaller gap.</p>
+    </div>
+    <div class="psec cols">
+      <div data-fade><Figure name="fig09_descriptor_distributions" alt={`Distributions of the ${countWord('web.feature_order')} descriptors over QM9 and HOPV15.`} /></div>
+      <div data-fade><Figure name="fig10_correlation_heatmap" alt="Correlation heatmap of the descriptors and the band gap." /></div>
+    </div>
+  </section>
+
+  <section class="psec wrap">
+    <h2 class="t-label psec__label">Our dye-likeness filter</h2>
+    <p class="flag-own" data-fade><Num k="descriptors.dye_filter_status" /></p>
+    <ol class="checklist">
+      {Object.keys(rules).map((r, i) => (
+        <li class="checklist__item" data-fade style={`--d:${i}`}>
+          <span class="checklist__tick" aria-hidden="true"></span>
+          <div>
+            <p class="checklist__rule"><Num k={`descriptors.dye_filter_rules.${r}`} /></p>
+            <p class="checklist__counts t-mono">QM9 <Num k={`descriptors.qm9.dye_rule_pass_counts.${r}`} /> · HOPV15 <Num k={`descriptors.hopv.dye_rule_pass_counts.${r}`} /></p>
+          </div>
+        </li>
+      ))}
+    </ol>
+    <p class="note" data-fade>Molecules passing each rule on its own. All <Count k="descriptors.dye_filter_rules" /> together: <Num k="descriptors.qm9.dye_filter_pass_count" /> in QM9, <Num k="descriptors.hopv.dye_filter_pass_count" /> in HOPV15.</p>
+  </section>
+
+  <section class="psec wrap honest">
+    <p class="t-label honest__label">Honest negative · the wrong yardstick</p>
+    <h2 class="psec__h">Lipinski's rule is for pills, not dyes.</h2>
+    <div class="cols prose">
+      <div>
+        <p data-fade>Every QM9 molecule passes it (<Num k="descriptors.qm9.lipinski_pass_rate" />), because they are all tiny. Only <Num k="descriptors.hopv.lipinski_pass_rate" /> of real solar dyes do. Drug-likeness says nothing about light harvesting, which is why we wrote a dye filter.</p>
+      </div>
+      <div class="dtable-wrap" data-fade>
+        <table class="dtable">
+          <caption>Lipinski's rules (at most <Num k="descriptors.lipinski_max_violations" /> violation allowed)</caption>
+          <tbody>
+            {Object.keys(lipinski).map((r) => (
+              <tr><th scope="row">{labels[r] ?? r}</th><td class="n"><Num k={`descriptors.lipinski_rules.${r}`} /></td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</PartLayout>
+
+<style>
+  .hbar__track .mid {
+    position: absolute;
+    left: 50%;
+    top: -3px;
+    bottom: -3px;
+    width: 1px;
+    background: var(--c-black);
+  }
+  .flag-own {
+    display: inline-block;
+    margin: 0 0 24px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--c-acid);
+    font-size: 14px;
+  }
+  .checklist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  .checklist__item {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+    background: var(--c-white);
+    border-radius: 14px;
+    padding: 16px 20px;
+    transition-delay: calc(var(--d) * 90ms);
+  }
+  .checklist__tick {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--c-blue);
+    position: relative;
+  }
+  .checklist__tick::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 3px;
+    width: 7px;
+    height: 13px;
+    border: solid var(--c-blue);
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg) scale(0);
+    transform-origin: center;
+    transition: transform 0.5s var(--ease-over) calc(var(--d) * 120ms + 250ms);
+  }
+  :global(.is-in) > .checklist__tick::after,
+  :global(html:not(.js)) .checklist__tick::after {
+    transform: rotate(45deg) scale(1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .checklist__tick::after {
+      transform: rotate(45deg) scale(1);
+    }
+  }
+  .checklist__rule {
+    margin: 0 0 6px;
+    font-size: 16px;
+    line-height: 1.35;
+  }
+  .checklist__rule :global(.num) {
+    white-space: normal;
+  }
+  .checklist__counts {
+    margin: 0;
+    font-size: 13px;
+    color: var(--c-muted);
+  }
+</style>

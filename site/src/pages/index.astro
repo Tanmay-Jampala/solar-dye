@@ -1,0 +1,286 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Num from '../components/Num.astro';
+import Roll from '../components/Roll.astro';
+import Ceiling from '../components/home/Ceiling.astro';
+import Experiments from '../components/home/Experiments.astro';
+import Laptop from '../components/home/Laptop.astro';
+import Screen from '../components/home/Screen.astro';
+import Predictor from '../components/home/Predictor.astro';
+import Footer from '../components/Footer.astro';
+import NextPanel from '../components/NextPanel.astro';
+import { PARTS, partUrl, url } from '../lib/site';
+import { get } from '../lib/data';
+
+// The small intro card draws the SQ curve (sq.curve) on a loop: path only, no numbers shown.
+const sq: { gap_eV: number[]; efficiency: number[] } = get('sq.curve');
+const peak = Math.max(...sq.efficiency);
+const reelPath = sq.gap_eV
+  .map((g, i) => {
+    const x = 20 + ((g - sq.gap_eV[0]) / (sq.gap_eV[sq.gap_eV.length - 1] - sq.gap_eV[0])) * 360;
+    const y = 250 - (sq.efficiency[i] / peak) * 190;
+    return `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
+  })
+  .join('');
+---
+<Layout
+  title="Solar Dye — Designing a Solar Dye on a Laptop"
+  description="An in-silico screen for dye-sensitised solar cells, run on one laptop: the Shockley–Queisser ceiling, HF and DFT, machine learning on QM9, quantum dots, and the cost of the computation."
+>
+  <section class="hero wrap" aria-labelledby="hero-statement">
+    <div class="grid hero__top">
+      <h1 id="hero-statement" class="t-statement hero__statement" data-reveal>
+        <span class="line">A laptop, all of QM9,</span>
+        <span class="line">and one question: which</span>
+        <span class="line">dye drinks sunlight best?</span>
+      </h1>
+    </div>
+    <div class="hero__card" data-hero-card>
+      <div class="hero__poster" aria-hidden="true"><img src={url('hero-poster.jpg')} alt="" width="1296" height="675" decoding="async" /></div>
+      <span class="hero__tag t-mono" data-hero-tag aria-hidden="true"></span>
+      <p class="hero__hint t-label" data-hero-hint>Real B3LYP geometries · move to push, click to name</p>
+    </div>
+    <div class="crosses">
+      <span class="cross" style="grid-column: 1" aria-hidden="true"></span>
+      <span class="cross" style="grid-column: 4" aria-hidden="true"></span>
+      <span class="t-label hero__scroll" style="grid-column: 6 / span 2">Scroll to explore</span>
+      <span class="cross" style="grid-column: 9" aria-hidden="true"></span>
+      <span class="cross" style="grid-column: 12; justify-self: end" aria-hidden="true"></span>
+    </div>
+  </section>
+
+  <section class="intro wrap" aria-labelledby="intro-h">
+    <h2 id="intro-h" class="t-display t-offset" data-reveal>
+      <span class="line">Sunlight Has</span>
+      <span class="line">a Sweet Spot</span>
+    </h2>
+    <div class="grid intro__row">
+      <div class="intro__reel" data-reel-card aria-hidden="true">
+        <svg class="intro__reel-svg" viewBox="0 0 400 300" preserveAspectRatio="none">
+          <line x1="0" x2="400" y1="250" y2="250" class="base" />
+          <path d={reelPath} pathLength="1" class="curve" />
+        </svg>
+      </div>
+      <div class="intro__text">
+        <p class="intro__p" data-reveal>
+          A solar cell turns each photon above its band gap into one electron and loses every photon below it. Push the gap down and the voltage collapses; push it up and the light walks straight through. Shockley and Queisser worked out the best possible balance. Under real sunlight it sits at a gap of <Num k="sq.optimum_gap_eV" u="eV" />, where at most <Num k="sq.optimum_efficiency_percent" /> of the light can become electricity.
+        </p>
+        <div class="intro__cta" data-fade>
+          <a class="pill pill--white roll-host" href="#experiments"><span class="pill__dot" aria-hidden="true"></span><Roll text="THE METHOD" /></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Ceiling />
+  <Experiments />
+  <Laptop />
+  <Screen />
+  <Predictor />
+  <section class="rayend wrap" aria-label="Where the light ray ends">
+    <p class="rayend__p t-mono" data-ray-end data-gap={get('sq.optimum_gap_eV')}>
+      The ray ends in the near-infrared, at the wavelength of the target gap: λ = hc / E = <Num k="sq.optimum_gap_eV" derived="wavelengthFromEv" /> for <Num k="sq.optimum_gap_eV" u="eV" /> <span class="rayend__tag">(derived)</span>.
+    </p>
+  </section>
+  <Footer />
+  <NextPanel slot="after" href={partUrl(PARTS[0])} label={`Part ${PARTS[0].index}`} title={PARTS[0].title} />
+</Layout>
+
+<style>
+  .hero {
+    padding-top: var(--pad-y);
+  }
+  .hero__top {
+    min-height: var(--header-h);
+  }
+  .hero__statement {
+    grid-column: 4 / span 6;
+    margin-top: -0.12em;
+  }
+  @media (min-width: 761px) {
+    .hero__statement :global(.line),
+    .hero__statement :global(.reveal-line) {
+      white-space: nowrap;
+    }
+  }
+  .hero__card {
+    margin-top: clamp(28px, 4vw, 60px);
+    height: 75vh;
+    min-height: 420px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #05060c;
+    position: relative;
+  }
+  .hero__poster {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(60% 70% at 30% 60%, rgba(26, 47, 251, 0.55), transparent 70%),
+      radial-gradient(40% 50% at 75% 35%, rgba(255, 255, 255, 0.12), transparent 70%),
+      #05060c;
+  }
+  /* A still of the WebGL pile (scripts/render-stills.mjs): shown before the 3D loads and without WebGL. */
+  .hero__poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .hero__scroll {
+    text-align: center;
+    white-space: nowrap;
+  }
+  .intro {
+    padding-top: clamp(100px, 14vw, 220px);
+  }
+  .intro__row {
+    margin-top: clamp(40px, 5vw, 80px);
+    align-items: end;
+    row-gap: 40px;
+  }
+  .intro__reel {
+    grid-column: 1 / span 3;
+    grid-row: 1;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--c-blue);
+  }
+  .intro__reel {
+    background:
+      radial-gradient(80% 80% at 35% 100%, rgba(255, 255, 255, 0.22), transparent 60%),
+      var(--c-blue);
+  }
+  :global(html[data-ceil='grow']) .intro__reel,
+  :global(html[data-ceil='open']) .intro__reel {
+    visibility: hidden;
+  }
+  .intro__reel-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .intro__reel-svg .base {
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .intro__reel-svg .curve {
+    fill: none;
+    stroke: var(--c-white);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .intro__reel-svg .curve {
+      animation: reel-draw 4.5s var(--ease-expo) infinite;
+    }
+  }
+  @keyframes reel-draw {
+    0% { stroke-dashoffset: 1; opacity: 1; }
+    60% { stroke-dashoffset: 0; opacity: 1; }
+    88% { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  .hero__tag {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    margin: 14px 0 0 14px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--c-white);
+    color: var(--c-black);
+    font-size: 13px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-1);
+    white-space: nowrap;
+  }
+  .hero__tag:global(.is-on) {
+    opacity: 1;
+  }
+  .hero__hint {
+    position: absolute;
+    left: 24px;
+    bottom: 20px;
+    z-index: 2;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.55);
+    display: none;
+  }
+  :global(html.gl-hero) .hero__hint {
+    display: block;
+  }
+  .hero__card :global(.hero__gl) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.2s var(--ease-1);
+  }
+  .hero__card :global(.hero__gl.is-ready) {
+    opacity: 1;
+  }
+  .rayend {
+    padding-block: clamp(80px, 10vw, 160px) 0;
+  }
+  .rayend__p {
+    margin: 0 0 0 auto;
+    max-width: 44ch;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--c-muted);
+    text-align: right;
+  }
+  .rayend__tag {
+    color: var(--c-muted);
+    font-style: italic;
+  }
+  .intro__text {
+    grid-column: 8 / span 4;
+    grid-row: 1;
+    align-self: start;
+  }
+  .intro__p {
+    margin: 0;
+    font-size: clamp(17px, 1.25vw, 20px);
+    line-height: 1.4;
+  }
+  .intro__cta {
+    margin-top: 28px;
+  }
+  @media (max-width: 760px) {
+    .hero__top {
+      padding-top: calc(var(--header-h) + 28px);
+    }
+    .hero__statement {
+      grid-column: 1 / -1;
+    }
+    .hero__card {
+      height: 62vh;
+    }
+    .hero .crosses .cross:nth-child(2),
+    .hero .crosses .cross:nth-child(4) {
+      display: none;
+    }
+    .hero__scroll {
+      grid-column: 2 / span 2 !important;
+    }
+    .hero .crosses .cross:last-child {
+      grid-column: 4 !important;
+    }
+    .intro__text {
+      grid-column: 1 / -1;
+    }
+    .intro__reel {
+      grid-column: 1 / span 2;
+      grid-row: 2;
+    }
+  }
+</style>

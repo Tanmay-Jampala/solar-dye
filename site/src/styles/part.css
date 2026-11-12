@@ -1,0 +1,243 @@
+/* Shared styles of the part pages and the checks page. */
+  .part__head {
+    padding-top: calc(var(--header-h) + var(--pad-y) + clamp(40px, 6vw, 100px));
+  }
+  .part__kicker {
+    color: var(--c-muted);
+    margin: 0 0 18px;
+  }
+  .part__intro {
+    margin-top: clamp(32px, 4vw, 64px);
+    row-gap: 18px;
+    align-items: start;
+  }
+  .part__tags {
+    grid-column: 1 / span 5;
+    color: var(--c-muted);
+    margin: 0;
+  }
+  .part__q {
+    grid-column: 7 / span 6;
+    margin: 0;
+    font-size: clamp(22px, 2.2vw, 34px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+  .facts {
+    margin: clamp(48px, 6vw, 100px) 0 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gap);
+    border-top: 1px solid var(--c-line);
+  }
+  .facts__item {
+    padding-top: 18px;
+    display: grid;
+    gap: 10px;
+    align-content: start;
+  }
+  .facts__item dt {
+    color: var(--c-muted);
+  }
+  .facts__n {
+    margin: 0;
+    font-size: clamp(2.2rem, 5vw, 5rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .facts__n .unit {
+    font-size: 0.4em;
+    letter-spacing: 0;
+    color: var(--c-muted);
+  }
+  .facts__tag {
+    margin: 0;
+  }
+
+  /* Sections */
+  .psec {
+    margin-top: clamp(80px, 10vw, 160px);
+  }
+  .psec__label {
+    color: var(--c-muted);
+    margin: 0 0 24px;
+  }
+  .psec__h {
+    font-size: clamp(28px, 3vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-weight: 400;
+    margin: 0 0 28px;
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(28px, 4vw, 72px);
+  }
+  .cols h2 {
+    margin: 0 0 16px;
+  }
+  .prose p {
+    margin: 0 0 1em;
+    font-size: clamp(17px, 1.25vw, 20px);
+    line-height: 1.45;
+  }
+  .prose .num {
+    white-space: normal;
+  }
+  .card {
+    background: var(--c-white);
+    border-radius: var(--radius);
+    padding: clamp(20px, 3vw, 44px);
+  }
+  .card--dark {
+    background: var(--c-black);
+    color: var(--c-white);
+  }
+  .card--blue {
+    background: var(--c-blue);
+    color: var(--c-white);
+  }
+
+  /* Honest negative */
+  .honest {
+    border-top: 2px solid var(--c-red);
+    padding-top: 22px;
+  }
+  .honest__label {
+    color: var(--c-red-ink);
+    margin: 0 0 18px;
+  }
+
+  /* Data tables */
+  .dtable-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    background: var(--c-white);
+    padding: 8px clamp(14px, 2vw, 28px);
+  }
+  .dtable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .dtable caption {
+    text-align: left;
+    padding: 14px 0 6px;
+    color: var(--c-muted);
+    font-size: 13px;
+  }
+  .dtable th,
+  .dtable td {
+    text-align: left;
+    padding: 12px 14px 12px 0;
+    border-bottom: 1px solid var(--c-line);
+    font-weight: 400;
+    vertical-align: top;
+  }
+  .dtable thead th {
+    color: var(--c-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .dtable thead .u {
+    text-transform: none;
+  }
+  .dtable td.n,
+  .dtable th.n {
+    text-align: right;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+  }
+  .dtable tbody tr:last-child th,
+  .dtable tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .dtable tr[data-row] {
+    cursor: pointer;
+  }
+  .dtable tr[data-row]:hover,
+  .dtable tr[aria-selected='true'] {
+    background: var(--c-paper);
+  }
+  .dtable .is-red {
+    color: var(--c-red-ink);
+  }
+  .dtable .num {
+    white-space: normal;
+  }
+  .note {
+    color: var(--c-muted);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  /* Horizontal bars (correlations, funnels) */
+  .hbar {
+    display: grid;
+    grid-template-columns: minmax(0, 14ch) minmax(0, 1fr) 7ch;
+    gap: 14px;
+    align-items: center;
+    font-size: 14px;
+    padding: 6px 0;
+  }
+  .hbar__track {
+    position: relative;
+    height: 14px;
+    background: var(--c-paper);
+    border-radius: 3px;
+  }
+  .hbar__bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: var(--c-blue);
+    border-radius: 3px;
+  }
+  .hbar__bar--neg {
+    background: var(--c-red);
+  }
+  .hbar__val {
+    text-align: right;
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 760px) {
+    .part__tags,
+    .part__q {
+      grid-column: 1 / -1;
+    }
+    .facts,
+    .cols {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .hbar {
+      grid-template-columns: minmax(0, 1fr) 7ch;
+    }
+    .hbar__track {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+
+/* Bound values on these pages are often long strings (sources, URLs, rules): let them wrap.
+   Short headline numbers keep their nowrap. */
+.part .num,
+.chk .num {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.part .facts__n .num,
+.part .counter__n .num,
+.part .split__n .num,
+.part .step__n .num,
+.part td.n .num,
+.chk .chk__big .num,
+.chk td.n .num {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+.cell {
+  overflow-wrap: anywhere;
+}

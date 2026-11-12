@@ -1,0 +1,13 @@
+---
+// Letter-roll text: each letter is stacked twice in an overflow mask and rolls up on hover of the
+// nearest .roll-host (or the element itself). Screen readers get the plain text via aria-label.
+interface Props {
+  text: string;
+  class?: string;
+}
+const { text, class: className } = Astro.props;
+const letters = Array.from(text);
+---
+<span class:list={['roll', className]} aria-label={text} role="text" data-roll><span class="roll__inner" aria-hidden="true">{letters.map((ch, i) => (
+  <span class="roll__l" style={`--i:${i}`}><span>{ch === ' ' ? ' ' : ch}</span><span>{ch === ' ' ? ' ' : ch}</span></span>
+))}</span></span>
