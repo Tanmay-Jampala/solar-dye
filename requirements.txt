@@ -1,0 +1,21 @@
+# Pinned versions used to produce results/results.json (recorded there under "environment").
+# On Windows, PySCF only installs from conda-forge -- use environment.yml (see README).
+# On Linux/macOS, `pip install -r requirements.txt` also works.
+python_version >= "3.11"
+numpy==2.4.6
+scipy==1.17.1
+pandas==3.1.1
+matplotlib==3.11.2
+scikit-learn==1.9.1
+scikit-image==0.26.0
+rdkit==2026.9.2
+pyscf==2.15.0
+geometric==1.1.1
+tqdm==4.70.1
+joblib==1.6.0
+pillow==13.0.0
+requests==2.34.2
+jupyterlab==4.6.6
+nbconvert==7.17.2
+nbclient==0.11.0
+ipykernel==7.4.0
