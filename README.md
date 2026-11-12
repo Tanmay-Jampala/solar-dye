@@ -4,8 +4,8 @@
 
 A computational chemistry project (Computational Chemistry 25BSCH01, Jain University, FET) by Tanmay Jampala.
 
-**Website:** https://tanmay-jampala.github.io/solar-dye/
-**Notebook:** https://tanmay-jampala.github.io/solar-dye/notebook/ (the executed notebook, rendered)
+- **Website:** https://tanmay-jampala.github.io/solar-dye/
+- **Notebook:** https://tanmay-jampala.github.io/solar-dye/notebook/ (the executed notebook, rendered)
 
 [![The molecule pile from the website's hero: the Part 2 molecules built from their B3LYP geometries](site/public/og.png)](https://tanmay-jampala.github.io/solar-dye/)
 
