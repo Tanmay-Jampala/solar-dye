@@ -16,6 +16,8 @@ interface Props {
 }
 const { title, description, back = false, preloader = true } = Astro.props;
 const current = Astro.url.pathname;
+// Link previews need an absolute image URL: available when the build knows the site's address.
+const ogImage = Astro.site ? new URL(url('og.png'), Astro.site).href : url('og.png');
 ---
 <!doctype html>
 <html lang="en-GB">
@@ -28,7 +30,8 @@ const current = Astro.url.pathname;
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content={url('og.png')} />
+    <meta property="og:image" content={ogImage} />
+    {Astro.site && <meta property="og:url" content={new URL(current, Astro.site).href} />}
     <meta name="theme-color" content="#f0f1fa" />
     <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
     <link rel="preload" href={generalSans400} as="font" type="font/woff2" crossorigin />
