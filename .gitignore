@@ -13,3 +13,6 @@ __pycache__/
 .ipynb_checkpoints/
 # Raw downloads are re-fetched and checksum-verified by src/download_data.py
 data/raw/
+
+# Demo video: published as a GitHub release asset (too large for the repository).
+demo/*.mp4

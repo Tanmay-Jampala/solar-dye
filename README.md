@@ -6,6 +6,7 @@ A computational chemistry project (Computational Chemistry 25BSCH01, Jain Univer
 
 - **Website:** https://tanmay-jampala.github.io/solar-dye/
 - **Notebook:** https://tanmay-jampala.github.io/solar-dye/notebook/ (the executed notebook, rendered)
+- **Demo video (3 min, 1080p):** [download from the v1.0 release](https://github.com/Tanmay-Jampala/solar-dye/releases/download/v1.0/solar-dye-demo.mp4). Its scene list and a voice-over script are in [`demo/README.md`](demo/README.md).
 
 [![The molecule pile from the website's hero: the Part 2 molecules built from their B3LYP geometries](site/public/og.png)](https://tanmay-jampala.github.io/solar-dye/)
 
@@ -61,6 +62,7 @@ Every number above is in [`results/results.json`](results/results.json). It is c
 | `data/processed/` | The cleaned QM9 and HOPV15 tables |
 | `cache/quantum/`, `cache/torsion/` | The finished HF/DFT results (4.4 h of computation), committed so a clone never re-runs them |
 | `site/` | The website: see [`site/README.md`](site/README.md) |
+| `demo/` | The demo video's scene list and voice-over script. The video itself is a release download; it is recorded by `site/scripts/record-demo.mjs` |
 | `py.sh`, `environment.yml`, `requirements.txt` | Environment and launcher |
 
 ## Reproduce the science
